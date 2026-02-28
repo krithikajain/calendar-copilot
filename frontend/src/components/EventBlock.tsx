@@ -1,6 +1,7 @@
 import { CalendarEvent } from "../types";
 import { cn } from "../lib/utils";
 import { format, parseISO } from "date-fns";
+import { getEventTheme, RADIUS } from "../lib/theme";
 
 interface Props {
     event: CalendarEvent;
@@ -11,7 +12,7 @@ interface Props {
 }
 
 export function EventBlock({ event, leftOffset, widthPercent, startHourOffset, durationHours }: Props) {
-    const topPercent = (startHourOffset / 16) * 100; // 16 hours total (6AM - 10PM)
+    const topPercent = (startHourOffset / 16) * 100;
     const heightPercent = (durationHours / 16) * 100;
 
     const startTime = format(parseISO(event.start), "h:mm a");
@@ -21,21 +22,22 @@ export function EventBlock({ event, leftOffset, widthPercent, startHourOffset, d
     return (
         <div
             className={cn(
-                "absolute rounded-md p-2 text-sm overflow-hidden border shadow-sm transition-all hover:shadow-md hover:z-30 cursor-pointer flex flex-col justify-start",
-                event.tagColor || "bg-gray-100 text-gray-800 border-gray-200"
+                "absolute p-3 text-sm overflow-hidden border shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 hover:z-30 cursor-pointer flex flex-col justify-start",
+                RADIUS.event,
+                getEventTheme(event.category)
             )}
             style={{
                 top: `${topPercent}%`,
                 height: `${heightPercent}%`,
                 left: `${leftOffset}%`,
                 width: `${widthPercent}%`,
-                minHeight: "24px",
+                minHeight: "28px",
             }}
             title={`${event.title} (${startTime} - ${endTime})`}
         >
             <div className="font-semibold truncate tracking-tight">{event.title}</div>
             {!isShort && (
-                <div className="text-xs opacity-80 mt-1 truncate font-medium">
+                <div className="text-xs opacity-80 mt-0.5 truncate font-medium">
                     {startTime} - {endTime}
                 </div>
             )}
