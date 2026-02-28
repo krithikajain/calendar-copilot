@@ -12,8 +12,8 @@ interface Props {
 }
 
 export function EventBlock({ event, leftOffset, widthPercent, startHourOffset, durationHours }: Props) {
-    const topPercent = (startHourOffset / 16) * 100;
-    const heightPercent = (durationHours / 16) * 100;
+    const topPercent = (startHourOffset / 17) * 100;
+    const heightPercent = (durationHours / 17) * 100;
 
     const startTime = format(parseISO(event.start), "h:mm a");
     const endTime = format(parseISO(event.end), "h:mm a");

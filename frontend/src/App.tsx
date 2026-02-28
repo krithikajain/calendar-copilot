@@ -41,7 +41,7 @@ function App() {
             {/* Header */}
             <header className="h-14 border-b border-gray-200 bg-white flex items-center justify-between px-6 shrink-0 shadow-sm z-10">
                 <div className="flex items-center gap-2.5">
-                    <div className="bg-[#1a73e8] p-1.5 rounded-lg flex items-center justify-center">
+                    <div className="bg-black p-1.5 rounded-lg flex items-center justify-center">
                         <Calendar className="w-5 h-5 text-white" />
                     </div>
                     <h1 className="font-semibold text-gray-800 text-[20px] tracking-tight">Copilot</h1>

@@ -83,41 +83,59 @@ def fetch_calendar_events(creds, time_min, time_max):
         
     service = build('calendar', 'v3', credentials=creds)
     
-    events_result = service.events().list(
-        calendarId='primary', 
-        timeMin=time_min,
-        timeMax=time_max,
-        singleEvents=True,
-        orderBy='startTime'
-    ).execute()
+    # Fetch all calendars the user has access to
+    calendars_result = service.calendarList().list().execute()
+    calendars = calendars_result.get('items', [])
     
-    events = events_result.get('items', [])
     normalized_events = []
     
-    for e in events:
-        if 'start' not in e or 'dateTime' not in e['start']:
-            continue # skip all-day events for timeline view
+    for calendar in calendars:
+        try:
+            events_result = service.events().list(
+                calendarId=calendar['id'], 
+                timeMin=time_min,
+                timeMax=time_max,
+                singleEvents=True,
+                orderBy='startTime'
+            ).execute()
             
-        title = e.get('summary', 'Untitled Event')
-        start = e['start'].get('dateTime', e['start'].get('date'))
-        end = e['end'].get('dateTime', e['end'].get('date'))
-        attendees = len(e.get('attendees', []))
-        location = e.get('location')
-        
-        category, tagColor = classify_event(title, attendees, location)
-        
-        normalized_events.append({
-            "id": e.get('id'),
-            "title": title,
-            "start": start,
-            "end": end,
-            "attendeesCount": attendees,
-            "location": location,
-            "organizer": e.get('organizer', {}).get('displayName'),
-            "htmlLink": e.get('htmlLink'),
-            "category": category,
-            "tagColor": tagColor
-        })
+            events = events_result.get('items', [])
+            
+            for e in events:
+                if 'start' not in e or 'dateTime' not in e['start']:
+                    continue # skip all-day events for timeline view
+                    
+                # Handle shared private events that hide summaries
+                title = e.get('summary', 'Busy').strip()
+                if not title:
+                    title = 'Busy'
+                    
+                start = e['start'].get('dateTime', e['start'].get('date'))
+                end = e['end'].get('dateTime', e['end'].get('date'))
+                attendees = len(e.get('attendees', []))
+                location = e.get('location')
+                
+                category, tagColor = classify_event(title, attendees, location)
+                
+                normalized_events.append({
+                    "id": e.get('id'),
+                    "title": title,
+                    "start": start,
+                    "end": end,
+                    "attendeesCount": attendees,
+                    "location": location,
+                    "organizer": e.get('organizer', {}).get('displayName'),
+                    "htmlLink": e.get('htmlLink'),
+                    "category": category,
+                    "tagColor": tagColor,
+                    "calendarName": calendar.get('summary', 'Unknown')
+                })
+        except Exception as e:
+            print(f"Error fetching events for calendar {calendar.get('id')}: {e}")
+            continue
+
+    # Sort the combined list of events by start time
+    normalized_events.sort(key=lambda x: x['start'])
         
     return normalized_events
 

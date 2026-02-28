@@ -2,7 +2,7 @@ def classify_event(title: str, attendees: int, location: str):
     title_lower = title.lower() if title else ""
     
     # Simple rule-based classification based on MVP requirements
-    if attendees >= 2:
+    if attendees >= 2 or any(kw in title_lower for kw in ["meeting", "sync", "call", "busy", "interview", "block"]):
         category = "Meeting"
         color = "bg-blue-100 text-blue-800 border-blue-200"
     elif any(kw in title_lower for kw in ["gym", "workout", "run", "yoga", "fitness"]):
@@ -27,7 +27,7 @@ def compute_time_stats(events):
     import datetime
     
     totals = {
-        "Meeting": 0, "Fitness": 0, "Break": 0, "Travel": 0, "Focus": 0, "Uncategorized": 0
+        "Meeting": 0.0, "Fitness": 0.0, "Break": 0.0, "Travel": 0.0, "Focus": 0.0, "Uncategorized": 0.0
     }
     
     for e in events:

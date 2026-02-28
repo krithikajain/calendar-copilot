@@ -33,9 +33,9 @@ export function CalendarWeekStrip({ weekStart, today }: Props) {
 
                 {/* View Switcher */}
                 <div className="flex items-center border border-gray-300 rounded-md overflow-hidden text-sm font-medium">
-                    <button className="px-4 py-1.5 text-gray-600 bg-white hover:bg-gray-50 border-r border-gray-300 transition">Day</button>
-                    <button className="px-4 py-1.5 bg-[#e8f0fe] text-[#1a73e8] border-r border-gray-300 transition">Week</button>
-                    <button className="px-4 py-1.5 text-gray-600 bg-white hover:bg-gray-50 transition">Month</button>
+                    <button onClick={() => alert("Day view coming soon in v2!")} className="px-4 py-1.5 text-gray-600 bg-white hover:bg-gray-50 border-r border-gray-300 transition">Day</button>
+                    <button className="px-4 py-1.5 bg-gray-100 text-black border-r border-gray-300 transition">Week</button>
+                    <button onClick={() => alert("Month view coming soon in v2!")} className="px-4 py-1.5 text-gray-600 bg-white hover:bg-gray-50 transition">Month</button>
                 </div>
             </div>
 
@@ -49,13 +49,13 @@ export function CalendarWeekStrip({ weekStart, today }: Props) {
                             key={i}
                             className="flex-1 flex flex-col items-center justify-center cursor-pointer group"
                         >
-                            <div className={cn("text-[11px] font-medium uppercase tracking-wider mb-0.5", isToday ? "text-[#1a73e8]" : "text-gray-500")}>
+                            <div className={cn("text-[11px] font-medium uppercase tracking-wider mb-0.5", isToday ? "text-gray-900 font-bold" : "text-gray-500")}>
                                 {format(day, "EEE")}
                             </div>
                             <div className={cn(
                                 "w-11 h-11 flex items-center justify-center text-[24px] font-normal transition-colors",
                                 isToday
-                                    ? "bg-[#1a73e8] text-white rounded-full"
+                                    ? "bg-black text-white rounded-full"
                                     : "text-gray-700 group-hover:bg-gray-100 rounded-full"
                             )}>
                                 {format(day, "d")}
