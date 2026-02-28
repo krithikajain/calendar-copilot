@@ -1,18 +1,18 @@
 export const CATEGORY_COLORS: Record<string, string> = {
-    Meeting: 'bg-[#bae6fd] text-[#0369a1] border-[#7dd3fc]',  // Light Blue
-    Fitness: 'bg-[#bbf7d0] text-[#15803d] border-[#86efac]',  // Light Green
-    Break: 'bg-[#fbcfe8] text-[#be185d] border-[#f9a8d4]',  // Light Pink
-    Travel: 'bg-[#fef08a] text-[#a16207] border-[#fde047]',  // Light Yellow
-    Focus: 'bg-[#e9d5ff] text-[#7e22ce] border-[#d8b4fe]',  // Light Purple
-    Uncategorized: 'bg-[#f1f5f9] text-[#475569] border-[#e2e8f0]', // Light Slate
+    Meeting: 'bg-[#c7eae4] text-[#2c4c47] border-[#a5d1ca]',  // Frozen Water
+    Fitness: 'bg-[#a7e8bd] text-[#2d4a36] border-[#89c59e]',  // Celadon
+    Break: 'bg-[#f5cac3] text-[#5c3d38] border-[#e2a9a0]',  // Cotton Rose
+    Travel: 'bg-[#ffd972] text-[#5c4a1a] border-[#eec04b]',  // Jasmine
+    Focus: 'bg-[#84a59d] text-[#ffffff] border-[#6b8a82]',  // Muted Teal
+    Uncategorized: 'bg-[#f28482] text-[#ffffff] border-[#d46a68]', // Light Coral
 };
 
 export const getEventTheme = (category: string) => {
     return CATEGORY_COLORS[category] || CATEGORY_COLORS.Uncategorized;
 };
 
-// You can edit the UI roundedness here for modularity
+// Extremely soft rounded corners inspired by modern high-end UI
 export const RADIUS = {
-    event: 'rounded-2xl',
-    dayPill: 'rounded-2xl',
+    event: 'rounded-[1.25rem]',
+    dayPill: 'rounded-[1.25rem]',
 };
