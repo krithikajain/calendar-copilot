@@ -36,3 +36,4 @@ This document outlines the core principles, technology stack, and operational ru
 1.  **Backend First**: Ensure the API models and database schemas are established before building UI components.
 2.  **Environment Sync**: Use `.env.example` as the source of truth for required variables.
 3.  **Atomic Edits**: Modify only one architectural layer at a time (e.g., fix the OAuth flow before adding new Chat features).
+4.  **Source Control**: **NEVER git commit on your own.** You must explicitly ask the user for permission before running any Git commit commands.

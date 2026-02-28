@@ -18,10 +18,28 @@ def rule_based_router(message: str) -> dict:
     elif "fitness" in msg or "workout" in msg: category = "Fitness"
     elif "focus" in msg: category = "Focus"
     
+    timeframe = "recent"
+    if "morning" in msg:
+        timeframe = "morning"
+    elif "afternoon" in msg:
+        timeframe = "afternoon"
+    elif "evening" in msg or "night" in msg and "tonight" not in msg:
+        timeframe = "evening"
+    elif "next week" in msg:
+        timeframe = "next week"
+    elif "weekend" in msg:
+        timeframe = "weekend"
+    elif "today" in msg or "tonight" in msg:
+        timeframe = "today"
+    elif "tomorrow" in msg:
+        timeframe = "tomorrow"
+    elif "week" in msg:
+        timeframe = "this week"
+        
     return {
         "intent": intent,
         "category": category,
-        "timeframe": "recent" # simplified MVP
+        "timeframe": timeframe
     }
 
 def fallback_llm_response(intent_data: dict, stats: dict, events) -> str:
@@ -49,8 +67,58 @@ def fallback_llm_response(intent_data: dict, stats: dict, events) -> str:
     return "I am a simple rule-based fallback right now. Try asking me 'How much time did I spend in meetings?' or 'How can I reduce meetings?'."
 
 def process_chat(message: str, events_context: list) -> str:
-    stats = compute_time_stats(events_context)
     intent_data = rule_based_router(message)
+    
+    import datetime
+    now = datetime.datetime.now()
+    filtered_events = []
+    timeframe = intent_data.get("timeframe", "recent")
+    
+    for e in events_context:
+        try:
+            # Simple timezone stripped comparison for the demo
+            start = datetime.datetime.fromisoformat(e["start"].replace("Z", "+00:00")).replace(tzinfo=None)
+            if timeframe == "today":
+                if start.date() == now.date():
+                    filtered_events.append(e)
+            elif timeframe == "tomorrow":
+                if start.date() == (now + datetime.timedelta(days=1)).date():
+                    filtered_events.append(e)
+            elif timeframe == "this week":
+                if now.date() <= start.date() <= (now + datetime.timedelta(days=7)).date():
+                    filtered_events.append(e)
+            elif timeframe == "morning":
+                if start.date() == now.date() and 5 <= start.hour < 12:
+                    filtered_events.append(e)
+            elif timeframe == "afternoon":
+                if start.date() == now.date() and 12 <= start.hour < 17:
+                    filtered_events.append(e)
+            elif timeframe == "evening":
+                if start.date() == now.date() and 17 <= start.hour <= 23:
+                    filtered_events.append(e)
+            elif timeframe == "next week":
+                next_week_start = now.date() + datetime.timedelta(days=7 - now.weekday())
+                next_week_end = next_week_start + datetime.timedelta(days=6)
+                if next_week_start <= start.date() <= next_week_end:
+                    filtered_events.append(e)
+            elif timeframe == "weekend":
+                # Get the nearest upcoming Saturday/Sunday
+                days_ahead = 5 - now.weekday()
+                if days_ahead < 0: days_ahead += 7
+                saturday = now.date() + datetime.timedelta(days=days_ahead)
+                sunday = saturday + datetime.timedelta(days=1)
+                
+                if start.date() in [saturday, sunday]:
+                    filtered_events.append(e)
+            else:
+                filtered_events.append(e)
+        except:
+            filtered_events.append(e)
+            
+    stats = compute_time_stats(filtered_events)
+    
+    # We pass filtered_events instead of full context downstream
+    events_context = filtered_events
     
     # Try OpenAI
     openai_key = os.getenv("OPENAI_API_KEY")
@@ -66,11 +134,16 @@ def process_chat(message: str, events_context: list) -> str:
     return fallback_llm_response(intent_data, stats, events_context)
 
 def build_system_prompt(intent_data, stats):
+    active_stats = {k: v for k, v in stats.items() if v > 0}
+    top_stats = dict(sorted(active_stats.items(), key=lambda item: item[1], reverse=True)[:3])
+    
     return (
-        "You are Calendar Copilot, a helpful AI assistant analyzing the user's Google Calendar. "
-        "Keep your answers concise, structured (use Markdown bullets), and grounded entirely in the calendar data. "
-        f"Calculated Data Context: The user has spent time across categories as follows: {json.dumps(stats)}.\n"
-        f"The user intent was detected as: {intent_data['intent']}.\n"
+        "You are Cora, a helpful and conversational AI assistant for Co-Calendar analyzing the user's schedule. "
+        "Keep your answers concise, natural, and grounded entirely in the calculated calendar data. "
+        f"You are explicitly analyzing this granular time slice ONLY: '{intent_data.get('timeframe', 'recent')}'. "
+        f"Top Priorities/Categories for this exact timeframe slice: {json.dumps(top_stats)}.\n"
+        "State clearly that you are looking at this specific timeframe slice. Do not just list raw metrics; explicitly synthesize what this timeframe looks like functionally based ONLY on those top highlighted categories.\n"
+        f"User intent detected: {intent_data['intent']}.\n"
     )
 
 def process_with_openai(message: str, intent_data: dict, stats: dict, events, api_key: str) -> str:
@@ -98,14 +171,26 @@ def process_with_openai(message: str, intent_data: dict, stats: dict, events, ap
 
 def process_with_gemini(message: str, intent_data: dict, stats: dict, events, api_key: str) -> str:
     try:
-        import google.generativeai as genai
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        
+        from google import genai
+        client = genai.Client(api_key=api_key)
         sys_prompt = build_system_prompt(intent_data, stats)
         prompt = f"System Context:\n{sys_prompt}\n\nUser Question:\n{message}"
         
-        response = model.generate_content(prompt)
-        return response.text
+        try:
+            response = client.models.generate_content(
+                model="gemini-3-flash-preview",
+                contents=prompt,
+            )
+            return response.text
+        except Exception as flash_err:
+            if "404" in str(flash_err) or "not found" in str(flash_err):
+                # Fallback to the stable older model if package doesn't recognize flash
+                response = client.models.generate_content(
+                    model="gemini-3-flash-preview",
+                    contents=prompt,
+                )
+                return response.text
+            raise flash_err
+            
     except Exception as e:
         return f"Error with Gemini: {str(e)}\n\nFallback: " + fallback_llm_response(intent_data, stats, events)

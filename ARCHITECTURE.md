@@ -1,63 +1,65 @@
-# Calendar Copilot - System Architecture
+# Co-Calendar - System Architecture
 
-This diagram illustrates the flow of data between the user, the React frontend, the FastAPI backend, and external services like Google Calendar and LLMs.
+This diagram illustrates the clean flow of data between the User, Frontend, Backend, Google Calendar, and LLMs. It is organized into three core pipelines: **Authentication**, **Calendar Data sync**, and **AI Assistant logic**.
 
 ```mermaid
-graph TD
-    %% User and Frontend interaction
-    User([User Browser]) <-->|React + Tailwind| FE[Frontend: Vite/React]
-    
-    %% Backend core structure
-    subgraph FastAPI_Backend ["Backend: FastAPI"]
-        Router[API Router: main.py]
-        DB[(SQLite: database.py)]
-        GAuth[Google OAuth: google.py]
-        Tools[Stats Tools: tools.py]
-        Agent[Agent Orchestrator: agent.py]
+graph LR
+    %% External Entities
+    User([User Browser])
+    GAPI([Google Calendar API])
+    LLM([LLM: Gemini / OpenAI])
+
+    %% Frontend
+    subgraph Frontend ["Frontend (Vite/React + Tailwind)"]
+        UI[React UI Components]
     end
 
-    %% External Connections
-    GAPI[Google Calendar API]
-    LLM[LLM: Gemini / OpenAI]
+    %% Backend
+    subgraph Backend ["Backend (FastAPI)"]
+        Router[API Router: main.py]
+        Auth[OAuth & Tokens: google.py]
+        Tools[Data Classifier: tools.py]
+        Agent[Agent Orchestrator: agent.py]
+        DB[(SQLite: database.py)]
+    end
 
-    %% Authentication Flow
-    FE -- "/auth/login" --> Router
-    Router -- "Redirect" --> GAuth
-    GAuth -- "Authorize" --> GAPI
-    GAPI -- "Code" --> GAuth
-    GAuth -- "Store Tokens" --> DB
+    %% 1. Authentication Flow
+    User -->|1. Login| UI
+    UI -->|Redirect| Auth
+    Auth <-->|OAuth Trade| GAPI
+    Auth -->|Store Token| DB
 
-    %% Data Flow
-    FE -- "/api/events" --> Router
-    Router -- "Fetch" --> GAuth
-    GAuth -- "API Request" --> GAPI
-    GAPI -- "JSON Events" --> Tools
-    Tools -- "Classified Events" --> Router
-    Router -- "Response" --> FE
+    %% 2. Data Flow
+    UI -->|2. Request Week| Router
+    Router -->|Fetch| Auth
+    Auth -->|Pull JSON| GAPI
+    GAPI -->|Raw Events| Auth
+    Auth -->|Clean/Format| Tools
+    Tools -->|Color & Categorize| Router
+    Router -->|Timeline JSON| UI
 
-    %% Chat Agent Flow
-    FE -- "/api/chat" --> Router
-    Router -- "Context" --> Agent
-    Agent -- "Compute Stats" --> Tools
-    Agent -- "History & Context" --> LLM
-    LLM -- "Natural Language" --> Agent
-    Agent -- "Markdown Reply" --> Router
-    Router -- "Response" --> FE
+    %% 3. Chat Agent Flow
+    UI -->|3. Ask Question| Router
+    Router -->|Forward Context| Agent
+    Agent <-->|Compute Stats| Tools
+    Agent -->|Prompt + Context| LLM
+    LLM -->|Strategy/Markdown| Agent
+    Agent -->|Response| UI
 
-    %% Styling
-    style FE fill:#f0f7ff,stroke:#0055ff,stroke-width:2px
-    style FastAPI_Backend fill:#fdf8ff,stroke:#8800ff,stroke-width:2px
+    %% Styling 
+    style Frontend fill:#f0f7ff,stroke:#0055ff,stroke-width:2px
+    style Backend fill:#fdf8ff,stroke:#8800ff,stroke-width:2px
     style GAPI fill:#fff1f1,stroke:#ff0000,stroke-width:2px
     style LLM fill:#f0fff4,stroke:#00aa00,stroke-width:2px
+    style DB fill:#eee,stroke:#999,stroke-width:2px
 ```
 
-## Flow Description
+## Core Pipelines
 
-1.  **Authentication**: The User initiates a login, triggering the Google OAuth flow. Tokens (Access & Refresh) are stored in the local SQLite database to persist the session.
-2.  **Event Visualization**: The Frontend requests events for the current week. The Backend retrieves them from Google, runs them through the `tools.py` classifier to assign categories (Meeting, Focus, etc.) and pastel colors, and returns them to the React Timeline.
-3.  **Chat Interaction**: When a user asks a question (e.g., "How much time did I spend in meetings?"):
-    *   The **Agent Orchestrator** detects the intent.
-    *   It calls **Stats Tools** to get the actual quantitative data.
-    *   It passes the user's question + the calculated data to the **LLM**.
-    *   The LLM generates a clear, concise bullet-point strategy.
-    *   If no LLM key exists, a **Rule-Based Fallback** provides a deterministic response using the same calculated data.
+1. **Authentication Flow (OAuth)**: The User initiates a login, triggering the Google OAuth flow in `google.py`. Tokens (Access & Refresh) are stored securely in the local SQLite database (`database.py`) to persist the session securely.
+2. **Event Data Sync**: The Frontend requests events for the loaded week. The Backend retrieves raw JSON from Google (`google.py`), runs them through the classifier (`tools.py`) to assign contextual tags (Meeting, Focus, Shared) and exact pastel color hexes, and returns formatted data to React.
+3. **AI Chat Engine (`agent.py`)**: When a user asks a question:
+    * The **Agent Orchestrator** detects the functional intent.
+    * It calls **Stats Tools** to compute actual numbers locally (preventing LLM hallucinations).
+    * It builds a strict, grounded System Prompt combined with the local context and fires it to the **LLM**.
+    * If an API Key is missing or strictly fails, a local **Rule-Based Fallback** replies with the deterministic math variables.

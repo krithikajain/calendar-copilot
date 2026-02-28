@@ -16,7 +16,7 @@ export function ChatPanel() {
     const [messages, setMessages] = useState<ChatMessage[]>([{
         id: "welcome",
         role: "assistant",
-        content: "Hi! I'm your Calendar Copilot. Ask me about your week or how to optimize your schedule."
+        content: "Hi! I'm Cora, your Co-Calendar assistant. Ask me about your week or how to optimize your schedule."
     }]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -60,7 +60,7 @@ export function ChatPanel() {
         <div className="flex flex-col h-full bg-white relative">
             <div className="flex items-center gap-2 p-4 border-b border-gray-100 shrink-0">
                 <Sparkles className="w-5 h-5 text-purple-600" />
-                <h2 className="font-semibold text-gray-800 tracking-tight">AI Assistant</h2>
+                <h2 className="font-semibold text-gray-800 tracking-tight">Cora</h2>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-6">
@@ -87,14 +87,13 @@ export function ChatPanel() {
                     </div>
                 ))}
                 {isLoading && (
-                    <div className="flex gap-3">
-                        <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
-                            <Bot className="w-5 h-5" />
+                    <div className="flex gap-3 animate-pulse">
+                        <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+                            <Sparkles className="w-4 h-4" />
                         </div>
-                        <div className="px-4 py-3 rounded-2xl bg-white border border-gray-200 text-gray-500 rounded-tl-none flex items-center gap-1 shadow-sm">
-                            <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                            <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                            <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div className="px-4 py-3 rounded-2xl bg-gradient-to-r from-purple-50 to-white border border-purple-100 rounded-tl-none flex flex-col gap-2 shadow-sm">
+                            <div className="h-2 w-24 bg-purple-200/60 rounded"></div>
+                            <div className="h-2 w-16 bg-purple-200/60 rounded delay-75"></div>
                         </div>
                     </div>
                 )}

@@ -21,3 +21,6 @@ calendar_copilot.db
 # IDE
 .vscode/
 .idea/
+
+# Internal
+lessons.md

@@ -44,7 +44,7 @@ function App() {
                     <div className="bg-black p-1.5 rounded-lg flex items-center justify-center">
                         <Calendar className="w-5 h-5 text-white" />
                     </div>
-                    <h1 className="font-semibold text-gray-800 text-[20px] tracking-tight">Copilot</h1>
+                    <h1 className="font-semibold text-gray-800 text-[20px] tracking-tight">Co-Calendar</h1>
                 </div>
 
                 <div className="flex items-center gap-4 text-sm">

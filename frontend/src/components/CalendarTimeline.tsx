@@ -8,9 +8,9 @@ interface Props {
 }
 
 export function CalendarTimeline({ events, weekStart }: Props) {
-    // Timeline from 6:00 AM to 10:00 PM (16 chunks)
+    // Timeline from 6:00 AM to 11:00 PM (to see 10 PM slot fully)
     const START_HOUR = 6;
-    const END_HOUR = 22;
+    const END_HOUR = 23;
     const TOTAL_HOURS = END_HOUR - START_HOUR;
 
     const hours = Array.from({ length: TOTAL_HOURS + 1 }).map((_, i) => i + START_HOUR);
