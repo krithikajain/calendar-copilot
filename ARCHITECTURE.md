@@ -8,7 +8,7 @@ graph TD
     User([User Browser]) <-->|React + Tailwind| FE[Frontend: Vite/React]
     
     %% Backend core structure
-    subgraph FastAPI_Backend [Backend: FastAPI]
+    subgraph FastAPI_Backend ["Backend: FastAPI"]
         Router[API Router: main.py]
         DB[(SQLite: database.py)]
         GAuth[Google OAuth: google.py]
