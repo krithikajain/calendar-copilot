@@ -1,6 +1,7 @@
 import { CalendarEvent } from "../types";
 import { cn } from "../lib/utils";
 import { format, parseISO } from "date-fns";
+import { Video } from "lucide-react";
 import { getEventTheme, RADIUS } from "../lib/theme";
 
 interface Props {
@@ -24,7 +25,7 @@ export function EventBlock({ event, leftOffset, widthPercent, startHourOffset, d
             className={cn(
                 "absolute px-2 py-1 text-sm overflow-hidden border-l-4 transition-all hover:shadow-md hover:z-30 cursor-pointer flex flex-col justify-start",
                 RADIUS.event,
-                getEventTheme(event.category)
+                getEventTheme(event)
             )}
             style={{
                 top: `${topPercent}%`,
@@ -35,7 +36,10 @@ export function EventBlock({ event, leftOffset, widthPercent, startHourOffset, d
             }}
             title={`${event.title} (${startTime} - ${endTime})`}
         >
-            <div className="font-semibold text-[11px] leading-tight truncate">{event.title}</div>
+            <div className="flex items-center gap-1 font-semibold text-[11px] leading-tight truncate">
+                {event.title}
+                {event.meetLink && <Video className="w-3 h-3 shrink-0" />}
+            </div>
             {!isShort && (
                 <div className="text-[10px] opacity-90 mt-0.5 truncate font-medium leading-[1.1]">
                     {startTime} - {endTime}

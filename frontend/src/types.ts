@@ -9,6 +9,9 @@ export interface CalendarEvent {
     htmlLink?: string | null;
     category: string;
     tagColor: string;
+    calendarName?: string;
+    meetLink?: string | null;
+    googleColorId?: string | null;
 }
 
 export interface UserContext {

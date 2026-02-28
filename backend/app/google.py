@@ -114,8 +114,25 @@ def fetch_calendar_events(creds, time_min, time_max):
                 end = e['end'].get('dateTime', e['end'].get('date'))
                 attendees = len(e.get('attendees', []))
                 location = e.get('location')
+                is_primary = calendar.get('primary', False)
+                is_shared = not is_primary
                 
-                category, tagColor = classify_event(title, attendees, location)
+                has_meet_link = bool(e.get('hangoutLink'))
+                desc = e.get('description', '').lower()
+                loc = (e.get('location') or '').lower()
+                title_lower = title.lower()
+                
+                if not has_meet_link and any(domain in desc or domain in loc or domain in title_lower for domain in ['zoom.us', 'teams.microsoft', 'teams.live', 'meet.google']):
+                    has_meet_link = True
+                
+                category, tagColor = classify_event(title, attendees, location, is_shared, has_meet_link)
+                
+                meet_link = e.get('hangoutLink')
+                # If they have a zoom/teams link in location, we can pass it as meetLink
+                if not meet_link and 'zoom.us' in loc:
+                    meet_link = e.get('location')
+                elif not meet_link and 'teams.m' in loc:
+                    meet_link = e.get('location')
                 
                 normalized_events.append({
                     "id": e.get('id'),
@@ -128,7 +145,9 @@ def fetch_calendar_events(creds, time_min, time_max):
                     "htmlLink": e.get('htmlLink'),
                     "category": category,
                     "tagColor": tagColor,
-                    "calendarName": calendar.get('summary', 'Unknown')
+                    "calendarName": calendar.get('summary', 'Unknown'),
+                    "meetLink": meet_link,
+                    "googleColorId": e.get('colorId') or calendar.get('colorId')
                 })
         except Exception as e:
             print(f"Error fetching events for calendar {calendar.get('id')}: {e}")
@@ -160,7 +179,7 @@ def get_mock_events(start_date_str, days_offset=0):
         start = dt.replace(hour=int(start_hour), minute=int((start_hour % 1) * 60)).isoformat() + "Z"
         end = dt.replace(hour=int(end_hour), minute=int((end_hour % 1) * 60)).isoformat() + "Z"
         
-        cat, color = classify_event(title, attendees, None)
+        cat, color = classify_event(title, attendees, None, False, False)
         events.append({
             "id": f"mock_{id_suffix}",
             "title": title,
@@ -169,7 +188,9 @@ def get_mock_events(start_date_str, days_offset=0):
             "attendeesCount": attendees,
             "location": "Remote",
             "category": cat,
-            "tagColor": color
+            "tagColor": color,
+            "meetLink": None,
+            "googleColorId": None
         })
 
     # Monday (0)

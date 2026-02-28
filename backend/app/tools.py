@@ -1,8 +1,12 @@
-def classify_event(title: str, attendees: int, location: str):
+def classify_event(title: str, attendees: int, location: str, is_shared: bool = False, has_meet_link: bool = False):
+    if is_shared:
+        return "Shared", ""
+        
     title_lower = title.lower() if title else ""
+    loc_lower = location.lower() if location else ""
     
     # Simple rule-based classification based on MVP requirements
-    if attendees >= 2 or any(kw in title_lower for kw in ["meeting", "sync", "call", "busy", "interview", "block"]):
+    if has_meet_link or attendees >= 2 or any(kw in title_lower or kw in loc_lower for kw in ["meeting", "sync", "call", "busy", "interview", "block", "1:1", "meet"]):
         category = "Meeting"
         color = "bg-blue-100 text-blue-800 border-blue-200"
     elif any(kw in title_lower for kw in ["gym", "workout", "run", "yoga", "fitness"]):
