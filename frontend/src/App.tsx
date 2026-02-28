@@ -40,9 +40,11 @@ function App() {
         <div className="flex flex-col h-screen bg-[#fafafa] font-sans text-gray-800">
             {/* Header */}
             <header className="h-14 border-b border-gray-200 bg-white flex items-center justify-between px-6 shrink-0 shadow-sm z-10">
-                <div className="flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-gray-500" />
-                    <h1 className="font-semibold text-gray-800 text-lg">Calendar Copilot</h1>
+                <div className="flex items-center gap-2.5">
+                    <div className="bg-[#1a73e8] p-1.5 rounded-lg flex items-center justify-center">
+                        <Calendar className="w-5 h-5 text-white" />
+                    </div>
+                    <h1 className="font-semibold text-gray-800 text-[20px] tracking-tight">Copilot</h1>
                 </div>
 
                 <div className="flex items-center gap-4 text-sm">
@@ -78,16 +80,16 @@ function App() {
             {/* Main Content */}
             <main className="flex flex-1 overflow-hidden">
 
-                {/* Left Column: Calendar (70%) */}
-                <section className="flex-[7] flex flex-col border-r border-gray-200 bg-white relative">
+                {/* Left Column: Calendar */}
+                <section className="flex-1 flex flex-col bg-white relative min-w-0">
                     <CalendarWeekStrip weekStart={weekStart} today={today} />
                     <div className="flex-1 overflow-y-auto relative bg-[#fdfdfd]">
                         <CalendarTimeline events={events} weekStart={weekStart} />
                     </div>
                 </section>
 
-                {/* Right Column: Chat Agent (30%) */}
-                <section className="flex-[3] flex flex-col bg-white min-w-[320px]">
+                {/* Right Column: Chat Agent */}
+                <section className="w-[300px] shrink-0 flex flex-col bg-white border-l border-gray-200">
                     <ChatPanel />
                 </section>
 

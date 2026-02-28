@@ -17,27 +17,27 @@ export function EventBlock({ event, leftOffset, widthPercent, startHourOffset, d
 
     const startTime = format(parseISO(event.start), "h:mm a");
     const endTime = format(parseISO(event.end), "h:mm a");
-    const isShort = durationHours < 0.75;
+    const isShort = durationHours <= 0.5;
 
     return (
         <div
             className={cn(
-                "absolute p-3 text-sm overflow-hidden border shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 hover:z-30 cursor-pointer flex flex-col justify-start",
+                "absolute px-2 py-1 text-sm overflow-hidden border-l-4 transition-all hover:shadow-md hover:z-30 cursor-pointer flex flex-col justify-start",
                 RADIUS.event,
                 getEventTheme(event.category)
             )}
             style={{
                 top: `${topPercent}%`,
-                height: `${heightPercent}%`,
+                height: `calc(${heightPercent}% - 2px)`,
                 left: `${leftOffset}%`,
-                width: `${widthPercent}%`,
-                minHeight: "28px",
+                width: `calc(${widthPercent}% - 4px)`,
+                minHeight: "22px",
             }}
             title={`${event.title} (${startTime} - ${endTime})`}
         >
-            <div className="font-semibold truncate tracking-tight">{event.title}</div>
+            <div className="font-semibold text-[11px] leading-tight truncate">{event.title}</div>
             {!isShort && (
-                <div className="text-xs opacity-80 mt-0.5 truncate font-medium">
+                <div className="text-[10px] opacity-90 mt-0.5 truncate font-medium leading-[1.1]">
                     {startTime} - {endTime}
                 </div>
             )}

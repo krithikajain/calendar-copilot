@@ -1,18 +1,17 @@
 export const CATEGORY_COLORS: Record<string, string> = {
-    Meeting: 'bg-[#c7eae4] text-[#2c4c47] border-[#a5d1ca]',  // Frozen Water
-    Fitness: 'bg-[#a7e8bd] text-[#2d4a36] border-[#89c59e]',  // Celadon
-    Break: 'bg-[#f5cac3] text-[#5c3d38] border-[#e2a9a0]',  // Cotton Rose
-    Travel: 'bg-[#ffd972] text-[#5c4a1a] border-[#eec04b]',  // Jasmine
-    Focus: 'bg-[#84a59d] text-[#ffffff] border-[#6b8a82]',  // Muted Teal
-    Uncategorized: 'bg-[#f28482] text-[#ffffff] border-[#d46a68]', // Light Coral
+    Meeting: 'bg-[#e8f0fe] text-[#1a73e8] border-l-[#1a73e8]',
+    Fitness: 'bg-[#ceead6] text-[#0d652d] border-l-[#0d652d]',
+    Break: 'bg-[#feefe3] text-[#cf6a15] border-l-[#cf6a15]',
+    Travel: 'bg-[#fef7e0] text-[#b06000] border-l-[#b06000]',
+    Focus: 'bg-[#fce8e6] text-[#c5221f] border-l-[#c5221f]',
+    Uncategorized: 'bg-[#f1f3f4] text-[#5f6368] border-l-[#5f6368]',
 };
 
 export const getEventTheme = (category: string) => {
     return CATEGORY_COLORS[category] || CATEGORY_COLORS.Uncategorized;
 };
 
-// Extremely soft rounded corners inspired by modern high-end UI
 export const RADIUS = {
-    event: 'rounded-[1.25rem]',
-    dayPill: 'rounded-[1.25rem]',
+    event: 'rounded-md',
+    dayPill: 'rounded-full',
 };

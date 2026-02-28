@@ -1,6 +1,6 @@
 import { format, addDays, isSameDay } from "date-fns";
 import { cn } from "../lib/utils";
-import { RADIUS } from "../lib/theme";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Props {
     weekStart: Date;
@@ -11,30 +11,53 @@ export function CalendarWeekStrip({ weekStart, today }: Props) {
     const days = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
 
     return (
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white shadow-sm shrink-0 sticky top-0 z-20">
-            <div className="text-2xl font-bold text-gray-800 tracking-tight">
-                {format(weekStart, "MMMM, yyyy")}
+        <div className="flex flex-col bg-white shrink-0 sticky top-0 z-20">
+            {/* Top Toolbar */}
+            <div className="flex items-center justify-between px-6 py-3 border-b border-gray-100">
+                <div className="flex items-center gap-6">
+                    <div className="text-xl font-normal text-gray-800">
+                        {format(weekStart, "MMMM yyyy")}
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button className="p-1.5 hover:bg-gray-100 rounded-full text-gray-600 transition">
+                            <ChevronLeft className="w-5 h-5" />
+                        </button>
+                        <button className="p-1.5 hover:bg-gray-100 rounded-full text-gray-600 transition">
+                            <ChevronRight className="w-5 h-5" />
+                        </button>
+                        <button className="ml-2 px-4 py-1.5 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700 transition">
+                            Today
+                        </button>
+                    </div>
+                </div>
+
+                {/* View Switcher */}
+                <div className="flex items-center border border-gray-300 rounded-md overflow-hidden text-sm font-medium">
+                    <button className="px-4 py-1.5 text-gray-600 bg-white hover:bg-gray-50 border-r border-gray-300 transition">Day</button>
+                    <button className="px-4 py-1.5 bg-[#e8f0fe] text-[#1a73e8] border-r border-gray-300 transition">Week</button>
+                    <button className="px-4 py-1.5 text-gray-600 bg-white hover:bg-gray-50 transition">Month</button>
+                </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            {/* Days Strip aligned with left axis of timeline */}
+            <div className="flex items-center pl-16 pr-2 pt-3 pb-2 border-b border-gray-100">
                 {days.map((day, i) => {
                     const isToday = isSameDay(day, today);
 
                     return (
                         <div
                             key={i}
-                            className={cn(
-                                "flex flex-col items-center justify-center w-[72px] h-[84px] cursor-pointer transition-all border",
-                                RADIUS.dayPill,
-                                isToday
-                                    ? "bg-[#2a2d34] text-white border-transparent shadow-md hover:bg-gray-800"
-                                    : "bg-white text-gray-500 border-gray-100 hover:border-gray-200 hover:bg-gray-50 hover:shadow-sm"
-                            )}
+                            className="flex-1 flex flex-col items-center justify-center cursor-pointer group"
                         >
-                            <div className={cn("text-xs font-semibold mb-1", isToday ? "text-gray-300" : "text-gray-400")}>
-                                {format(day, "EEEE")}
+                            <div className={cn("text-[11px] font-medium uppercase tracking-wider mb-0.5", isToday ? "text-[#1a73e8]" : "text-gray-500")}>
+                                {format(day, "EEE")}
                             </div>
-                            <div className={cn("text-2xl font-bold", isToday ? "text-white" : "text-gray-800")}>
+                            <div className={cn(
+                                "w-11 h-11 flex items-center justify-center text-[24px] font-normal transition-colors",
+                                isToday
+                                    ? "bg-[#1a73e8] text-white rounded-full"
+                                    : "text-gray-700 group-hover:bg-gray-100 rounded-full"
+                            )}>
                                 {format(day, "d")}
                             </div>
                         </div>
