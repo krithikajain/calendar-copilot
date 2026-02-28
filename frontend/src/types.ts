@@ -12,6 +12,21 @@ export interface CalendarEvent {
     calendarName?: string;
     meetLink?: string | null;
     googleColorId?: string | null;
+    calendar?: {
+        id: string;
+        name: string;
+        initials: string;
+        isShared: boolean;
+        accessRole: string;
+    };
+    google?: {
+        eventColorId?: string | null;
+        calendarColorId?: string | null;
+        resolvedColors?: {
+            background: string;
+            foreground: string;
+        } | null;
+    };
 }
 
 export interface UserContext {

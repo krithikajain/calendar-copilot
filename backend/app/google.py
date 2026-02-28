@@ -3,7 +3,25 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 import datetime
+import time
 from .tools import classify_event
+
+# Simple in-memory cache for user metadata (TTL: 6 hours)
+USER_METADATA_CACHE = {}
+CACHE_TTL = 60 * 60 * 6
+
+def get_cached_metadata(user_id: str):
+    if user_id in USER_METADATA_CACHE:
+        cache_data = USER_METADATA_CACHE[user_id]
+        if time.time() - cache_data['timestamp'] < CACHE_TTL:
+            return cache_data['data']
+    return None
+
+def set_cached_metadata(user_id: str, data: dict):
+    USER_METADATA_CACHE[user_id] = {
+        'timestamp': time.time(),
+        'data': data
+    }
 
 SCOPES = [
     'openid', 
@@ -77,22 +95,51 @@ def get_credentials_for_user(user):
         scopes=user.scopes.split(",") if user.scopes else SCOPES
     )
 
-def fetch_calendar_events(creds, time_min, time_max):
+def fetch_calendar_events(creds, time_min, time_max, google_user_id: str = "default"):
     if creds.token == "mock":
         return get_mock_events(time_min[:10])
         
     service = build('calendar', 'v3', credentials=creds)
     
-    # Fetch all calendars the user has access to
-    calendars_result = service.calendarList().list().execute()
-    calendars = calendars_result.get('items', [])
+    # Check cache first
+    meta = get_cached_metadata(google_user_id)
+    if not meta:
+        try:
+            colors_result = service.colors().get().execute()
+            colors = {
+                "event": colors_result.get("event", {}),
+                "calendar": colors_result.get("calendar", {})
+            }
+        except Exception:
+            colors = {"event": {}, "calendar": {}}
+            
+        try:
+            cals_result = service.calendarList().list().execute()
+            cals_raw = cals_result.get("items", [])
+        except Exception:
+            cals_raw = []
+            
+        cals_map = {}
+        for c in cals_raw:
+            cals_map[c["id"]] = {
+                "name": c.get("summary", "Unknown"),
+                "colorId": c.get("colorId"),
+                "accessRole": c.get("accessRole", "reader"),
+                "primary": c.get("primary", False)
+            }
+            
+        meta = {"colors": colors, "calendars": cals_map}
+        set_cached_metadata(google_user_id, meta)
+        
+    colors = meta["colors"]
+    calendars_map = meta["calendars"]
     
     normalized_events = []
     
-    for calendar in calendars:
+    for cal_id, cal_info in calendars_map.items():
         try:
             events_result = service.events().list(
-                calendarId=calendar['id'], 
+                calendarId=cal_id, 
                 timeMin=time_min,
                 timeMax=time_max,
                 singleEvents=True,
@@ -105,17 +152,16 @@ def fetch_calendar_events(creds, time_min, time_max):
                 if 'start' not in e or 'dateTime' not in e['start']:
                     continue # skip all-day events for timeline view
                     
-                # Handle shared private events that hide summaries
                 title = e.get('summary', 'Busy').strip()
-                if not title:
-                    title = 'Busy'
+                if not title: title = 'Busy'
                     
                 start = e['start'].get('dateTime', e['start'].get('date'))
                 end = e['end'].get('dateTime', e['end'].get('date'))
                 attendees = len(e.get('attendees', []))
                 location = e.get('location')
-                is_primary = calendar.get('primary', False)
-                is_shared = not is_primary
+                
+                is_primary = cal_info.get('primary', False)
+                is_shared = not is_primary or cal_info.get("accessRole") != "owner"
                 
                 has_meet_link = bool(e.get('hangoutLink'))
                 desc = e.get('description', '').lower()
@@ -128,11 +174,25 @@ def fetch_calendar_events(creds, time_min, time_max):
                 category, tagColor = classify_event(title, attendees, location, is_shared, has_meet_link)
                 
                 meet_link = e.get('hangoutLink')
-                # If they have a zoom/teams link in location, we can pass it as meetLink
-                if not meet_link and 'zoom.us' in loc:
-                    meet_link = e.get('location')
-                elif not meet_link and 'teams.m' in loc:
-                    meet_link = e.get('location')
+                if not meet_link and 'zoom.us' in loc: meet_link = e.get('location')
+                elif not meet_link and 'teams.m' in loc: meet_link = e.get('location')
+                
+                # Resolving Google Colors exactly as per Replica reqs
+                event_color_id = e.get('colorId')
+                calendar_color_id = cal_info.get('colorId')
+                
+                resolved_colors = None
+                if event_color_id and event_color_id in colors.get("event", {}):
+                    resolved_colors = colors["event"][event_color_id]
+                elif calendar_color_id and calendar_color_id in colors.get("calendar", {}):
+                    resolved_colors = colors["calendar"][calendar_color_id]
+                    
+                # Initials logic
+                cal_name = cal_info.get("name", "Unknown")
+                words = [w for w in cal_name.replace('@', ' ').replace('.', ' ').split() if w.strip()]
+                if not words: initials = "C"
+                elif len(words) == 1: initials = words[0][:2].upper()
+                else: initials = (words[0][0] + words[1][0]).upper()
                 
                 normalized_events.append({
                     "id": e.get('id'),
@@ -145,12 +205,22 @@ def fetch_calendar_events(creds, time_min, time_max):
                     "htmlLink": e.get('htmlLink'),
                     "category": category,
                     "tagColor": tagColor,
-                    "calendarName": calendar.get('summary', 'Unknown'),
-                    "meetLink": meet_link,
-                    "googleColorId": e.get('colorId') or calendar.get('colorId')
+                    "calendar": {
+                        "id": cal_id,
+                        "name": cal_name,
+                        "initials": initials,
+                        "isShared": is_shared,
+                        "accessRole": cal_info.get("accessRole")
+                    },
+                    "google": {
+                        "eventColorId": event_color_id,
+                        "calendarColorId": calendar_color_id,
+                        "resolvedColors": resolved_colors
+                    },
+                    "meetLink": meet_link
                 })
         except Exception as e:
-            print(f"Error fetching events for calendar {calendar.get('id')}: {e}")
+            print(f"Error fetching events for calendar {cal_id}: {e}")
             continue
 
     # Sort the combined list of events by start time

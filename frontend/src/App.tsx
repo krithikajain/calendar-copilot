@@ -44,7 +44,7 @@ function App() {
                     <div className="bg-black p-1.5 rounded-lg flex items-center justify-center">
                         <Calendar className="w-5 h-5 text-white" />
                     </div>
-                    <h1 className="font-semibold text-gray-800 text-[20px] tracking-tight">Co-Calendar</h1>
+                    <h1 className="font-semibold text-gray-800 text-[20px] tracking-tight">Ko-Calendar</h1>
                 </div>
 
                 <div className="flex items-center gap-4 text-sm">
@@ -90,7 +90,7 @@ function App() {
 
                 {/* Right Column: Chat Agent */}
                 <section className="w-[300px] shrink-0 flex flex-col bg-white border-l border-gray-200">
-                    <ChatPanel />
+                    <ChatPanel user={user} />
                 </section>
 
             </main>

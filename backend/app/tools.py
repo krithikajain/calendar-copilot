@@ -1,14 +1,21 @@
 def classify_event(title: str, attendees: int, location: str, is_shared: bool = False, has_meet_link: bool = False):
+    # We will let shared events pass through the normal classification logic
+    # but give them a default "Shared" category if they don't hit the "Meeting" criteria,
+    # or just treat them as "Shared" but group them with Meetings in stats.
+    # Actually, user wants them considered as meetings.
     if is_shared:
-        return "Shared", ""
+        category = "Shared"
         
     title_lower = title.lower() if title else ""
     loc_lower = location.lower() if location else ""
     
-    # Simple rule-based classification based on MVP requirements
-    if has_meet_link or attendees >= 2 or any(kw in title_lower or kw in loc_lower for kw in ["meeting", "sync", "call", "busy", "interview", "block", "1:1", "meet"]):
-        category = "Meeting"
-        color = "bg-blue-100 text-blue-800 border-blue-200"
+    # Simple rule-based classification
+    is_meeting = has_meet_link or attendees >= 2
+    is_meeting_kw = any(kw in title_lower or kw in loc_lower for kw in ["meeting", "sync", "call", "busy", "interview", "block", "1:1", "meet"])
+    
+    if is_meeting or is_meeting_kw or is_shared:
+        category = "Shared" if is_shared else "Meeting"
+        color = "" if is_shared else "bg-blue-100 text-blue-800 border-blue-200"
     elif any(kw in title_lower for kw in ["gym", "workout", "run", "yoga", "fitness"]):
         category = "Fitness"
         color = "bg-green-100 text-green-800 border-green-200"
@@ -41,6 +48,11 @@ def compute_time_stats(events):
             
             duration_hours = (end - start).total_seconds() / 3600.0
             cat = e.get("category", "Uncategorized")
+            
+            # Treat Shared calendars functionally as Meetings for stats purposes
+            if cat == "Shared":
+                cat = "Meeting"
+                
             if cat in totals:
                 totals[cat] += duration_hours
         except:
