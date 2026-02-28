@@ -33,7 +33,11 @@ def get_flow():
         }
     }
     
-    flow = Flow.from_client_config(client_config, scopes=SCOPES)
+    flow = Flow.from_client_config(
+        client_config, 
+        scopes=SCOPES, 
+        autogenerate_code_verifier=False
+    )
     flow.redirect_uri = redirect_uri
     return flow
 
