@@ -35,8 +35,22 @@ export interface UserContext {
     email?: string;
 }
 
+export interface EmailDraft {
+    to_name: string;
+    to_email: string;
+    subject: string;
+    body: string;
+    slots: any[];
+}
+
 export interface ChatMessage {
     id: string;
     role: 'user' | 'assistant';
-    content: string;
+    content: string; // The main reply
+    intent?: string;
+    email_drafts?: EmailDraft[];
+    needs_user_input?: boolean;
+    hint?: string;
+    schedule_request?: any;
+    slot_options_by_person?: any;
 }

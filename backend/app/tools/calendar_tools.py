@@ -4,7 +4,6 @@ from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 import datetime
 import time
-from .tools import classify_event
 
 # Simple in-memory cache for user metadata (TTL: 6 hours)
 USER_METADATA_CACHE = {}
@@ -95,7 +94,7 @@ def get_credentials_for_user(user):
         scopes=user.scopes.split(",") if user.scopes else SCOPES
     )
 
-def fetch_calendar_events(creds, time_min, time_max, google_user_id: str = "default"):
+def get_events(creds, time_min, time_max, google_user_id: str = "default"):
     if creds.token == "mock":
         return get_mock_events(time_min[:10])
         
@@ -295,3 +294,39 @@ def get_mock_events(start_date_str, days_offset=0):
     add_event("fri3", "Flight to SF", 4, 15.0, 19.0)
     
     return events
+def classify_event(title: str, attendees: int, location: str, is_shared: bool = False, has_meet_link: bool = False):
+    # We will let shared events pass through the normal classification logic
+    # but give them a default "Shared" category if they don't hit the "Meeting" criteria,
+    # or just treat them as "Shared" but group them with Meetings in stats.
+    # Actually, user wants them considered as meetings.
+    if is_shared:
+        category = "Shared"
+        
+    title_lower = title.lower() if title else ""
+    loc_lower = location.lower() if location else ""
+    
+    # Simple rule-based classification
+    is_meeting = has_meet_link or attendees >= 2
+    is_meeting_kw = any(kw in title_lower or kw in loc_lower for kw in ["meeting", "sync", "call", "busy", "interview", "block", "1:1", "meet"])
+    
+    if is_meeting or is_meeting_kw or is_shared:
+        category = "Shared" if is_shared else "Meeting"
+        color = "" if is_shared else "bg-blue-100 text-blue-800 border-blue-200"
+    elif any(kw in title_lower for kw in ["gym", "workout", "run", "yoga", "fitness"]):
+        category = "Fitness"
+        color = "bg-green-100 text-green-800 border-green-200"
+    elif any(kw in title_lower for kw in ["lunch", "break", "walk", "coffee"]):
+        category = "Break"
+        color = "bg-orange-100 text-orange-800 border-orange-200"
+    elif any(kw in title_lower for kw in ["commute", "uber", "flight", "drive", "travel"]):
+        category = "Travel"
+        color = "bg-yellow-100 text-yellow-800 border-yellow-200"
+    elif any(kw in title_lower for kw in ["focus", "deep work", "coding", "writing"]):
+        category = "Focus"
+        color = "bg-purple-100 text-purple-800 border-purple-200"
+    else:
+        category = "Uncategorized"
+        color = "bg-gray-100 text-gray-800 border-gray-200"
+        
+    return category, color
+

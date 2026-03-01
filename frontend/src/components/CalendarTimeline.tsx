@@ -1,6 +1,9 @@
 import { CalendarEvent } from "../types";
 import { EventBlock } from "./EventBlock";
-import { addDays, parseISO, isSameDay } from "date-fns";
+import { addDays, parseISO, isSameDay, format } from "date-fns";
+import { useState } from "react";
+import { X, Clock, AlignLeft, Users, Calendar as CalendarIcon, MapPin, Video } from "lucide-react";
+import { getEventTheme } from "../lib/theme";
 
 interface Props {
     events: CalendarEvent[];
@@ -8,10 +11,11 @@ interface Props {
 }
 
 export function CalendarTimeline({ events, weekStart }: Props) {
-    // Timeline from 6:00 AM to 11:00 PM (to see 10 PM slot fully)
     const START_HOUR = 6;
     const END_HOUR = 23;
     const TOTAL_HOURS = END_HOUR - START_HOUR;
+
+    const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
 
     const hours = Array.from({ length: TOTAL_HOURS + 1 }).map((_, i) => i + START_HOUR);
     const days = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
@@ -93,19 +97,93 @@ export function CalendarTimeline({ events, weekStart }: Props) {
                             if (!styleInfo) return null;
 
                             return (
-                                <EventBlock
-                                    key={ev.id}
-                                    event={ev}
-                                    leftOffset={styleInfo.leftOffset}
-                                    widthPercent={styleInfo.widthPercent}
-                                    startHourOffset={styleInfo.startHourOffset}
-                                    durationHours={styleInfo.durationHours}
-                                />
+                                <div key={ev.id} onClick={() => setSelectedEvent(ev)}>
+                                    <EventBlock
+                                        event={ev}
+                                        leftOffset={styleInfo.leftOffset}
+                                        widthPercent={styleInfo.widthPercent}
+                                        startHourOffset={styleInfo.startHourOffset}
+                                        durationHours={styleInfo.durationHours}
+                                    />
+                                </div>
                             )
                         })}
                     </div>
                 </div>
             </div>
+
+            {/* Event Details Modal */}
+            {selectedEvent && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-sm p-4" onClick={() => setSelectedEvent(null)}>
+                    <div
+                        className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        {/* Header color bar */}
+                        <div
+                            className="h-3 w-full"
+                            style={{ backgroundColor: getEventTheme(selectedEvent).style?.borderLeftColor || '#cbd5e1' }}
+                        />
+
+                        <div className="p-6">
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 className="text-xl font-semibold text-gray-900 leading-tight mb-1">
+                                        {selectedEvent.title}
+                                    </h3>
+                                    <p className="text-sm text-gray-500 font-medium flex items-center gap-1.5">
+                                        <CalendarIcon className="w-4 h-4" />
+                                        {format(parseISO(selectedEvent.start), "EEEE, MMMM d, yyyy")}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setSelectedEvent(null)}
+                                    className="p-1.5 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="flex items-start gap-3 text-gray-600">
+                                    <Clock className="w-5 h-5 shrink-0 mt-0.5 text-gray-400" />
+                                    <div>
+                                        <div className="text-sm font-medium">
+                                            {format(parseISO(selectedEvent.start), "h:mm a")} – {format(parseISO(selectedEvent.end), "h:mm a")}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {selectedEvent.meetLink && (
+                                    <div className="flex items-start gap-3 text-gray-600">
+                                        <Video className="w-5 h-5 shrink-0 mt-0.5 text-gray-400" />
+                                        <a href={selectedEvent.meetLink} target="_blank" rel="noreferrer" className="text-sm text-blue-600 hover:underline font-medium">
+                                            Join Video Call
+                                        </a>
+                                    </div>
+                                )}
+
+                                {selectedEvent.calendar && (
+                                    <div className="flex items-start gap-3 text-gray-600">
+                                        <Users className="w-5 h-5 shrink-0 mt-0.5 text-gray-400" />
+                                        <div className="text-sm">
+                                            <span className="font-medium text-gray-800">Calendar:</span> {selectedEvent.calendar.name}
+                                            {selectedEvent.calendar.isShared && <span className="ml-2 text-[10px] bg-gray-100 px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider text-gray-500">Shared</span>}
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="flex items-start gap-3 text-gray-600">
+                                    <AlignLeft className="w-5 h-5 shrink-0 mt-0.5 text-gray-400" />
+                                    <div className="text-sm">
+                                        <span className="font-medium text-gray-800">Category:</span> {selectedEvent.category}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

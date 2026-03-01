@@ -5,7 +5,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 
-from app import database, models, google, agent
+from app import database, models
+import app.tools.calendar_tools as calendar_tools
+from app.agent.orchestrator import Orchestrator
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -34,7 +36,7 @@ def get_current_user_id(request: Request) -> int:
 
 @app.get("/auth/login")
 def login():
-    authorization_url, state = google.get_authorization_url()
+    authorization_url, state = calendar_tools.get_authorization_url()
     return RedirectResponse(authorization_url)
 
 @app.get("/auth/callback")
@@ -43,7 +45,7 @@ def auth_callback(request: Request, db: Session = Depends(database.get_db)):
     if not code:
         raise HTTPException(status_code=400, detail="Authorization code omitted.")
     
-    user_info, creds = google.fetch_token_and_user_info(code)
+    user_info, creds = calendar_tools.fetch_token_and_user_info(code)
     
     # Store or update user in DB
     user = db.query(database.User).filter(database.User.google_id == user_info["id"]).first()
@@ -91,11 +93,11 @@ def get_events(weekStart: str, request: Request, db: Session = Depends(database.
 
     if not user or not user.refresh_token:
         # Return elegant mock events for the demo if not fully connected
-        return google.get_mock_events(weekStart)
+        return calendar_tools.get_mock_events(weekStart)
     
     # Fetch real events
-    creds = google.get_credentials_for_user(user)
-    events = google.fetch_calendar_events(creds, time_min, time_max)
+    creds = calendar_tools.get_credentials_for_user(user)
+    events = calendar_tools.get_events(creds, time_min, time_max)
     
     return events
 
@@ -104,18 +106,15 @@ def chat_with_agent(chat_req: models.ChatRequest, request: Request, db: Session 
     user_id = get_current_user_id(request)
     user = db.query(database.User).filter(database.User.id == user_id).first() if user_id else None
 
-    # Get events for Context (Last 4 weeks up to this week for context)
-    now = datetime.utcnow()
-    # Simple proxy: fetch past 30 days of events as context for the agent
-    time_min = (now - timedelta(days=30)).isoformat() + "Z"
-    time_max = (now + timedelta(days=7)).isoformat() + "Z"
-
     if user and user.refresh_token:
-        creds = google.get_credentials_for_user(user)
-        events_context = google.fetch_calendar_events(creds, time_min, time_max)
+        creds = calendar_tools.get_credentials_for_user(user)
     else:
-        # Mock Context
-        events_context = google.get_mock_events(now.strftime("%Y-%m-%d"), days_offset=-30)
+        # Mock class for creds if not logged in
+        class MockCreds:
+            token = "mock"
+        creds = MockCreds()
     
-    response_text = agent.process_chat(chat_req.message, events_context)
-    return models.ChatResponse(reply=response_text)
+    orchestrator = Orchestrator(creds)
+    response_data = orchestrator.process_chat(chat_req.message, tz_str="America/New_York")
+    
+    return models.ChatResponse(**response_data)

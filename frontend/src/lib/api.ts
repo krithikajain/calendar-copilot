@@ -20,9 +20,9 @@ export const fetchEvents = async (weekStart: string): Promise<CalendarEvent[]> =
     return res.data;
 };
 
-export const sendChatMessage = async (message: string): Promise<string> => {
+export const sendChatMessage = async (message: string): Promise<any> => {
     const res = await api.post('/api/chat', { message });
-    return res.data.reply;
+    return res.data;
 };
 
 export const getLoginUrl = () => {

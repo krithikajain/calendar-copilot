@@ -2,7 +2,7 @@ import { CalendarEvent } from "../types";
 import { cn } from "../lib/utils";
 import { format, parseISO } from "date-fns";
 import { Video } from "lucide-react";
-import { getEventTheme, RADIUS } from "../lib/theme";
+import { getEventTheme, RADIUS, getDummyAvatar } from "../lib/theme";
 
 interface Props {
     event: CalendarEvent;
@@ -53,17 +53,19 @@ export function EventBlock({ event, leftOffset, widthPercent, startHourOffset, d
             )}
 
             {/* Conditional shared calendar badge */}
-            {event.calendar && event.calendar.initials && (
+            {event.calendar && event.calendar.isShared && (
                 <div
-                    className="absolute top-1 right-1 h-4 min-w-[16px] px-1 rounded-sm flex items-center justify-center text-[9px] font-bold border transition-opacity opacity-70 group-hover:opacity-100 shadow-sm bg-white"
-                    title={event.calendar.name}
+                    className="absolute top-1 right-1 h-5 w-5 rounded-full flex items-center justify-center text-[11px] transition-opacity opacity-80 hover:opacity-100 shadow-sm bg-white group/avatar z-10"
                     style={
-                        theme.style && theme.style.color
-                            ? { color: theme.style.color, borderColor: theme.style.color }
-                            : {}
+                        theme.style && theme.style.borderLeftColor
+                            ? { border: `1px solid ${theme.style.borderLeftColor}` }
+                            : { border: `1px solid #ccc` }
                     }
                 >
-                    {event.calendar.initials}
+                    {getDummyAvatar(event.calendar.name)}
+                    <div className="absolute opacity-0 group-hover/avatar:opacity-100 pointer-events-none transition-opacity bottom-full mb-1.5 right-0 bg-gray-900 text-white text-[10px] px-2 py-1 rounded shadow-lg whitespace-nowrap z-50">
+                        {event.calendar.name}
+                    </div>
                 </div>
             )}
         </div>

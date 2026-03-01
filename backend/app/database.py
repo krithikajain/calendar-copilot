@@ -23,6 +23,13 @@ class User(Base):
     client_secret = Column(String)
     scopes = Column(String)
 
+class Contact(Base):
+    __tablename__ = "contacts"
+    
+    name = Column(String, primary_key=True, index=True)
+    email = Column(String)
+    updated_at = Column(String)
+
 def get_db():
     db = SessionLocal()
     try:
