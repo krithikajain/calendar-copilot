@@ -37,32 +37,38 @@ export function KoalaRecapModal({ isOpen, onClose, events, weekStart }: Props) {
 
     const slides = [
         {
-            label: "Meeting Hours",
+            label: "Total Meeting Hours",
             headline: `${stats.totalMeetingHours}h`,
-            insight: `You spent ${stats.meetingPercentage} of your work week in meetings.`,
-            colorPrimary: "#1e3a8a", // blue-900
-            colorSecondary: "#3b82f6" // blue-500
+            insight: `${stats.meetingPercentage} of your work week in meetings.`,
+            colorPrimary: "#18181b", // zinc-900
+            colorSecondary: "#09090b", // zinc-950
+            image: "https://img.freepik.com/premium-psd/png-creative-animal-outlines-captivating-artwork-celebrating-natures-diverse-wildlife_1020495-452671.jpg?semt=ais_hybrid&w=740&q=80"
         },
         {
             label: "Busiest Day",
             headline: stats.busiestDay,
-            insight: `That was your heaviest meeting day (${stats.busiestDayHours} hrs).`,
-            colorPrimary: "#7e22ce", // purple-700
-            colorSecondary: "#d946ef" // fuchsia-500
+            secondary: `${stats.busiestDayHours}h in meetings`,
+            insight: "That was your heaviest meeting day.",
+            colorPrimary: "#111827", // gray-900
+            colorSecondary: "#030712", // gray-950
+            image: "https://img.freepik.com/premium-psd/png-creative-animal-outlines-captivating-artwork-celebrating-natures-diverse-wildlife_1020495-452671.jpg?semt=ais_hybrid&w=740&q=80"
         },
         {
             label: "Deep Work",
             headline: stats.longestDeepWork,
-            insight: `You had ${stats.deepWorkCount} deep work blocks (>= 60m). Protect these!`,
-            colorPrimary: "#14532d", // green-900
-            colorSecondary: "#22c55e" // green-500
+            secondary: `${stats.deepWorkCount} blocks (≥ 60m)`,
+            insight: "Protect these blocks for real progress.",
+            colorPrimary: "#1f2937", // gray-800
+            colorSecondary: "#111827", // gray-900
+            image: "https://img.freepik.com/premium-psd/png-creative-animal-outlines-captivating-artwork-celebrating-natures-diverse-wildlife_1020495-452671.jpg?semt=ais_hybrid&w=740&q=80"
         },
         {
             label: "Free Time",
             headline: `${stats.totalFreeHours}h`,
-            insight: "This is your available capacity inside work hours this week.",
-            colorPrimary: "#7f1d1d", // red-900
-            colorSecondary: "#f97316" // orange-500
+            insight: "This is your available capacity inside work hours.",
+            colorPrimary: "#171717", // neutral-900
+            colorSecondary: "#0a0a0a", // neutral-950
+            image: "https://img.freepik.com/premium-psd/png-creative-animal-outlines-captivating-artwork-celebrating-natures-diverse-wildlife_1020495-452671.jpg?semt=ais_hybrid&w=740&q=80"
         }
     ];
 
@@ -76,7 +82,7 @@ export function KoalaRecapModal({ isOpen, onClose, events, weekStart }: Props) {
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
-            <div className="w-full h-full max-w-md mx-auto relative bg-black shadow-2xl overflow-hidden flex flex-col">
+            <div className="w-full h-full max-w-[375px] max-h-[812px] mx-auto relative bg-black shadow-2xl overflow-hidden flex flex-col sm:rounded-3xl border border-white/10">
                 {/* Close button */}
                 <button
                     onClick={onClose}
@@ -85,14 +91,9 @@ export function KoalaRecapModal({ isOpen, onClose, events, weekStart }: Props) {
                     <X className="w-6 h-6" />
                 </button>
 
-                {/* Swipeable Container */}
-                <div
-                    className="flex-1 flex transition-transform duration-500 ease-out"
-                    style={{ transform: `translateX(-${currentSlide * 100}%)`, width: `${slides.length * 100}%` }}
-                >
-                    {slides.map((slide, i) => (
-                        <KoalaRecapSlide key={i} {...slide} isActive={i === currentSlide} />
-                    ))}
+                {/* Single Slide Container (No Sliding Animation) */}
+                <div className="flex-1 flex w-full h-full relative">
+                    <KoalaRecapSlide {...slides[currentSlide]} isActive={true} />
                 </div>
 
                 {/* Nav Controls Desktop */}

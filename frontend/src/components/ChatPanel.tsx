@@ -114,8 +114,6 @@ export function ChatPanel({ user, onEventCreated, onDraftEventReady }: ChatPanel
     return (
         <div className="flex flex-col h-full relative bg-black/95 backdrop-blur-xl border-l border-white/10">
             <div className="flex items-center gap-3 p-4 border-b border-white/10 shrink-0 bg-white/5 backdrop-blur-lg shadow-sm">
-                <img src="https://img.freepik.com/premium-psd/png-creative-animal-outlines-captivating-artwork-celebrating-natures-diverse-wildlife_1020495-452671.jpg?semt=ais_hybrid&w=740&q=80" alt="Koala" className="w-12 h-12 rounded-full object-cover border border-white/10 shadow-md" />
-                <h2 className="text-lg font-semibold text-white tracking-tight">Koala</h2>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 flex flex-col">
@@ -130,7 +128,6 @@ export function ChatPanel({ user, onEventCreated, onDraftEventReady }: ChatPanel
                         <p className="text-gray-400 font-medium text-sm">
                             I'm Koala, a smart assistant for the lazy.
                         </p>
-
                         <div className="mt-8 flex flex-col gap-3 mx-auto w-full max-w-[280px]">
                             {QUICK_PROMPTS.map((prompt) => (
                                 <button
