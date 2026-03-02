@@ -51,7 +51,10 @@ function App() {
             const { createEvent } = await import('./lib/api');
             await createEvent(eventData);
             setIsCreateModalOpen(false);
-            loadData();
+            // Add slight delay for Google Calendar's eventual consistency to index the event
+            setTimeout(() => {
+                loadData();
+            }, 1500);
         } catch (error: any) {
             if (error.response?.status === 403) {
                 alert("Please reconnect your Google Calendar to grant write permissions.");
