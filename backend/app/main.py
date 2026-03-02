@@ -146,7 +146,7 @@ def get_events(weekStart: str, request: Request, db: Session = Depends(database.
     
     # Fetch real events
     creds = calendar_tools.get_credentials_for_user(user)
-    events = calendar_tools.get_events(creds, time_min, time_max)
+    events = calendar_tools.get_events(creds, time_min, time_max, google_user_id=user.google_id)
     
     return events
 

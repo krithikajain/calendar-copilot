@@ -6,6 +6,9 @@ A complete web application MVP composed of a React (Vite) frontend and a FastAPI
 
 Watch the Calendar Copilot in action: [View Demo on Vimeo](https://vimeo.com/1169470174/f5b5c06aa9?share=copy&fl=sv&fe=ci)
 
+### 🚀 Live Preview
+- **Frontend App (Vercel)**: [calendar-copilot-20.vercel.app](https://calendar-copilot-20.vercel.app/)
+- **Backend API Server (Render)**: [calendar-copilot.onrender.com](https://calendar-copilot.onrender.com/)
 
 ## Features
 
