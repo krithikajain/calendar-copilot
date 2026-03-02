@@ -7,6 +7,7 @@ import { CalendarTimeline } from "./components/CalendarTimeline";
 import { CreateEventModal } from "./components/CreateEventModal";
 import { KoalaRecapCard } from "./components/KoalaRecapCard";
 import { KoalaRecapModal } from "./components/KoalaRecapModal";
+import { LandingPage } from "./components/LandingPage";
 import { format, startOfWeek } from "date-fns";
 import { Calendar, RefreshCw, LogIn, Plus } from "lucide-react";
 
@@ -18,6 +19,7 @@ function App() {
     const [createModalData, setCreateModalData] = useState<any>(null);
     const [isCreating, setIsCreating] = useState(false);
     const [isRecapModalOpen, setIsRecapModalOpen] = useState(false);
+    const [showDemo, setShowDemo] = useState(false);
 
     const today = new Date();
     const weekStart = startOfWeek(today, { weekStartsOn: 0 });
@@ -62,6 +64,10 @@ function App() {
         }
     };
 
+    if (!loading && user && !user.authenticated && !showDemo) {
+        return <LandingPage onDemoClick={() => setShowDemo(true)} />;
+    }
+
     return (
         <div className="flex flex-col h-screen bg-[#fafafa] font-sans text-gray-800">
             {/* Header */}
@@ -94,10 +100,10 @@ function App() {
                             </div>
                             <a
                                 href={getLoginUrl()}
-                                className="flex items-center gap-1.5 bg-white/10 border border-white/20 shadow-sm hover:bg-white/20 text-white px-3 py-1.5 rounded-md font-medium transition-all"
+                                className="flex items-center gap-1.5 hover:bg-white/10 text-gray-400 hover:text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
                             >
                                 <LogIn className="w-4 h-4" />
-                                Connect Google Calendar
+                                Connect
                             </a>
                         </div>
                     )}

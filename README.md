@@ -7,6 +7,8 @@ A complete web application MVP composed of a React (Vite) frontend and a FastAPI
 - **Google OAuth**: One-click connect to Google Calendar.
 - **Notion-like Weekly View**: Visual vertical timeline from 6am-10pm, color-coded based on AI-classified event categories.
 - **Chat Agent**: Ask questions like "How can I reduce meetings next week?" to get rule-based or LLM-powered strategies (OpenAI/Gemini).
+- **AI Human-in-the-Loop Event Creation**: Chat naturally to schedule meetings ("Book a sync with Jane for 3pm"). The LLM strictly proxies conflict-checking and intelligently drafts a metadata layout for you to review via a visual creation form.
+- **Weekly Koala Recap**: A dynamic, Spotify-Wrapped style mobile snapshot that instantly reports and analyzes your weekly meeting metrics, top workload capacities, and peak deep work windows natively over the browser DOM.
 - **Rule-based Fallback**: Fully functional demo with "mock events" if you haven't supplied Google OAuth keys yet.
 
 ## Prerequisites
