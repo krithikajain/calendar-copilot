@@ -189,10 +189,11 @@ export function ChatPanel({ user, onEventCreated, onDraftEventReady }: ChatPanel
                                                         <div key={idx} className="border border-white/10 rounded-xl p-3 bg-white/5 relative group shadow-sm text-left">
                                                             <div className="text-[11px] font-bold text-gray-400 mb-1 uppercase tracking-wider">Draft to {draft.to_name}</div>
                                                             <div className="text-sm font-semibold border-b border-white/10 pb-1.5 mb-2 text-white">Subject: {draft.subject}</div>
-                                                            <div className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed font-serif">{draft.body}</div>
+                                                            <div className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed font-serif">{draft.body.replace(/\\n/g, '\n')}</div>
                                                             <button
                                                                 onClick={() => {
-                                                                    navigator.clipboard.writeText(`Subject: ${draft.subject}\n\n${draft.body}`);
+                                                                    const cleanBody = draft.body.replace(/\\n/g, '\n');
+                                                                    navigator.clipboard.writeText(`Subject: ${draft.subject}\n\n${cleanBody}`);
                                                                     showToast("Copied to clipboard!");
                                                                 }}
                                                                 className="absolute top-2 right-2 p-1.5 bg-white/10 border border-white/20 rounded-md shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/20 text-white"

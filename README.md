@@ -2,6 +2,11 @@
 
 A complete web application MVP composed of a React (Vite) frontend and a FastAPI backend. It allows users to authenticate with Google Calendar, visualize their weekly schedule in a beautiful, Notion-like UI with pastel colors, and use an AI Chat panel to query and analyze their events.
 
+## 🎬 Demo
+
+Watch the Calendar Copilot in action: [View Demo on Vimeo](https://vimeo.com/1169470174/f5b5c06aa9?share=copy&fl=sv&fe=ci)
+
+
 ## Features
 
 - **Google OAuth**: One-click connect to Google Calendar.

@@ -16,9 +16,18 @@ database.init_db()
 
 app = FastAPI(title="Calendar Copilot MVP")
 
+# Parse FRONTEND_URL to support comma-separated lists and remove trailing slashes
+raw_frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+origins = ["http://localhost:5173"]
+
+for url in raw_frontend_url.split(","):
+    clean_url = url.strip().rstrip("/")
+    if clean_url and clean_url not in origins:
+        origins.append(clean_url)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[os.getenv("FRONTEND_URL", "http://localhost:5173")],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -69,8 +78,15 @@ def auth_callback(request: Request, db: Session = Depends(database.get_db)):
     session_id = str(uuid.uuid4())
     SESSION_STORE[session_id] = user.id
 
-    response = RedirectResponse(url=os.getenv("FRONTEND_URL", "http://localhost:5173"))
-    response.set_cookie(key="session_id", value=session_id, httponly=True, max_age=86400*30)
+    response = RedirectResponse(url=os.getenv("FRONTEND_URL", "http://localhost:5173").split(",")[0].strip())
+    response.set_cookie(
+        key="session_id", 
+        value=session_id, 
+        httponly=True, 
+        max_age=86400*30, 
+        samesite="none", 
+        secure=True
+    )
     return response
 
 @app.get("/api/me")

@@ -8,7 +8,19 @@ interface LandingPageProps {
 export function LandingPage({ onDemoClick }: LandingPageProps) {
     return (
         <div className="min-h-screen bg-black flex flex-col items-center justify-center relative overflow-hidden font-sans">
-            {/* Background Effects */}
+            {/* Full Background Image */}
+            <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+                <img
+                    src="https://img.freepik.com/premium-psd/png-creative-animal-outlines-captivating-artwork-celebrating-natures-diverse-wildlife_1020495-452671.jpg?semt=ais_hybrid&w=740&q=80"
+                    alt=""
+                    className="w-full h-full object-cover opacity-30 scale-110"
+                />
+                {/* Dark Vignette/Overlay for readability */}
+                <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-black/90"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-black/60"></div>
+            </div>
+
+            {/* Background Effects (subtle glows) */}
             <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-white/5 blur-3xl rounded-full mix-blend-screen pointer-events-none"></div>
             <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-white/5 blur-3xl rounded-full mix-blend-screen pointer-events-none"></div>
 

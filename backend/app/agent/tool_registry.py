@@ -29,14 +29,37 @@ class ToolRunner:
                 events = cal_tools.get_events(self.google_creds, tmin, tmax)
                 events_cache = events[:200]
                 
+                # Apply constraints to the events returned for briefs
                 if plan.intent in ["day_brief", "week_brief", "unknown"]:
+                    import datetime, zoneinfo
+                    tz = zoneinfo.ZoneInfo(tz_str)
+                    
+                    c_start = plan.constraints.time_window_start_hour if plan.constraints else None
+                    c_end = plan.constraints.time_window_end_hour if plan.constraints else None
+                    
+                    filtered_briefing_events = []
+                    for e in events_cache:
+                        try:
+                            e_start_dt = datetime.datetime.fromisoformat(e["start"].replace("Z", "+00:00")).astimezone(tz)
+                            e_end_dt = datetime.datetime.fromisoformat(e["end"].replace("Z", "+00:00")).astimezone(tz)
+                            
+                            # Filter logic: include if it overlaps with window
+                            if c_start is not None and e_end_dt.hour < c_start:
+                                continue
+                            if c_end is not None and e_start_dt.hour >= c_end:
+                                continue
+                                
+                            filtered_briefing_events.append(e)
+                        except:
+                            filtered_briefing_events.append(e) # fallback to keep
+                            
                     results["events"] = [
                         {
                             "title": e.get("title", "Untitled"),
                             "start": e.get("start"),
                             "end": e.get("end"),
                             "category": e.get("category", "Uncategorized")
-                        } for e in events_cache[:40]
+                        } for e in filtered_briefing_events[:40]
                     ]
                 else:
                     results["events"] = f"Fetched {len(events_cache)} events."

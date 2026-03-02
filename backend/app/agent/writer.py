@@ -18,6 +18,7 @@ class WriterAgent:
         {json.dumps(tool_results, indent=2)}
         
         WRITING RULES:
+        - IMPORTANT: ALWAYS use real newlines in your JSON strings for formatting. NEVER output the literal text sequence '\\n'.
         - For create_event_request: You MUST fill out the `draft_event` object using the user's requested title, date, start time, end time, and attendees. If duration is missing, default to 30 mins. If time is 'block' default to 3 hours starting at 9 AM, else if ambiguous morning default to 11 AM. You MUST set `ui_actions.open_create_event_modal = true`. Check tool_results if there is conflict mapping to `validation.conflict`. Do NOT draft an email.
         - For email_draft_with_slots: You MUST include EXACT slot options from tool_results (no invented times). Format them cleanly. Use the timezone label 'ET' with the slots. Include the draft in `email_drafts` array.
         - For email_draft_general: Output the draft in `email_drafts` array.

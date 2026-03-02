@@ -44,7 +44,10 @@ class PlannerAgent:
         - tomorrow: start=today+1 00:00, end=today+2 00:00
         - this week: start=today 00:00, end=next Mon 00:00
         - next week: start=next Mon 00:00, end=next Mon+7 00:00
-        - "sat morning": start=next sat 00:00, end=next sat+1, constraints.notes="morning"
+        - "morning" (9-12): constraints.time_window_start_hour=9, constraints.time_window_end_hour=12, constraints.notes=["morning"]
+        - "afternoon" (12-17): constraints.time_window_start_hour=12, constraints.time_window_end_hour=17, constraints.notes=["afternoon"]
+        - "evening" (17-21): constraints.time_window_start_hour=17, constraints.time_window_end_hour=21, constraints.notes=["evening"]
+        - "sat morning": start=next sat 00:00, end=next sat+1, constraints.time_window_start_hour=9, constraints.time_window_end_hour=12, constraints.notes=["morning"]
         
         Duration minutes defaults to 30. Extract duration if mentioned.
         
