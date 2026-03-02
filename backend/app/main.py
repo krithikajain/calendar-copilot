@@ -22,6 +22,10 @@ except Exception as e:
 
 app = FastAPI(title="Calendar Copilot MVP")
 
+@app.get("/")
+def read_root():
+    return {"status": "ok", "message": "Calendar Copilot API is running"}
+
 # Parse FRONTEND_URL to support comma-separated lists and remove trailing slashes
 # We explicitly include your provided Vercel domain as a default fallback
 raw_frontend_url = os.getenv("FRONTEND_URL", "https://calendar-copilot-20.vercel.app,http://localhost:5173")
