@@ -5,6 +5,8 @@ import { ChatPanel } from "./components/ChatPanel";
 import { CalendarWeekStrip } from "./components/CalendarWeekStrip";
 import { CalendarTimeline } from "./components/CalendarTimeline";
 import { CreateEventModal } from "./components/CreateEventModal";
+import { KoalaRecapCard } from "./components/KoalaRecapCard";
+import { KoalaRecapModal } from "./components/KoalaRecapModal";
 import { format, startOfWeek } from "date-fns";
 import { Calendar, RefreshCw, LogIn, Plus } from "lucide-react";
 
@@ -15,6 +17,7 @@ function App() {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [createModalData, setCreateModalData] = useState<any>(null);
     const [isCreating, setIsCreating] = useState(false);
+    const [isRecapModalOpen, setIsRecapModalOpen] = useState(false);
 
     const today = new Date();
     const weekStart = startOfWeek(today, { weekStartsOn: 0 });
@@ -128,18 +131,28 @@ function App() {
                 </section>
 
                 {/* Right Column: Chat Agent */}
-                <section className="w-[300px] shrink-0 flex flex-col bg-white border-l border-gray-200">
-                    <ChatPanel
-                        user={user}
-                        onEventCreated={loadData}
-                        onDraftEventReady={(data) => {
-                            setCreateModalData(data);
-                            setIsCreateModalOpen(true);
-                        }}
-                    />
+                <section className="w-[300px] shrink-0 flex flex-col bg-white border-l border-gray-200 shadow-xl overflow-hidden relative z-20">
+                    <KoalaRecapCard onClick={() => setIsRecapModalOpen(true)} />
+                    <div className="flex-1 overflow-hidden">
+                        <ChatPanel
+                            user={user}
+                            onEventCreated={loadData}
+                            onDraftEventReady={(data) => {
+                                setCreateModalData(data);
+                                setIsCreateModalOpen(true);
+                            }}
+                        />
+                    </div>
                 </section>
 
             </main>
+
+            <KoalaRecapModal
+                isOpen={isRecapModalOpen}
+                onClose={() => setIsRecapModalOpen(false)}
+                events={events}
+                weekStart={weekStartStr}
+            />
 
             {/* Remove global modal from here */}
         </div>
