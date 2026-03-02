@@ -10,9 +10,13 @@ import app.tools.calendar_tools as calendar_tools
 from app.agent.orchestrator import Orchestrator
 
 from dotenv import load_dotenv
-load_dotenv()
-
-database.init_db()
+# Startup logic
+print("--- STARTING APP ---")
+try:
+    database.init_db()
+    print("Database initialized successfully.")
+except Exception as e:
+    print(f"WARNING: Database initialization failed: {e}")
 
 app = FastAPI(title="Calendar Copilot MVP")
 
@@ -24,6 +28,8 @@ for url in raw_frontend_url.split(","):
     clean_url = url.strip().rstrip("/")
     if clean_url and clean_url not in origins:
         origins.append(clean_url)
+
+print(f"CORS: Allowed origins: {origins}")
 
 app.add_middleware(
     CORSMiddleware,
