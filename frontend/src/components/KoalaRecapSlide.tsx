@@ -47,7 +47,7 @@ export function KoalaRecapSlide({ headline, label, secondary, insight, colorPrim
                         </div>
                     )}
                 </div>
-                <p className="text-lg text-white/80 font-medium max-w-xs leading-relaxed text-center mt-2">
+                <p className="text-lg text-white/85 font-medium max-w-xs leading-relaxed text-center mt-2">
                     {insight}
                 </p>
             </div>
