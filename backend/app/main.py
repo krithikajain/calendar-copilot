@@ -10,6 +10,8 @@ import app.tools.calendar_tools as calendar_tools
 from app.agent.orchestrator import Orchestrator
 
 from dotenv import load_dotenv
+load_dotenv()
+
 # Startup logic
 print("--- STARTING APP ---")
 try:
@@ -21,8 +23,9 @@ except Exception as e:
 app = FastAPI(title="Calendar Copilot MVP")
 
 # Parse FRONTEND_URL to support comma-separated lists and remove trailing slashes
-raw_frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
-origins = ["http://localhost:5173"]
+# We explicitly include your provided Vercel domain as a default fallback
+raw_frontend_url = os.getenv("FRONTEND_URL", "https://calendar-copilot-20.vercel.app,http://localhost:5173")
+origins = []
 
 for url in raw_frontend_url.split(","):
     clean_url = url.strip().rstrip("/")
