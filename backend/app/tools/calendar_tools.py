@@ -171,12 +171,25 @@ def get_events(creds, time_min, time_max, google_user_id: str = "default"):
             cals_raw = []
             
         cals_map = {}
+        has_primary = False
         for c in cals_raw:
+            is_primary = c.get("primary", False)
+            if is_primary: has_primary = True
             cals_map[c["id"]] = {
                 "name": c.get("summary", "Unknown"),
                 "colorId": c.get("colorId"),
                 "accessRole": c.get("accessRole", "reader"),
-                "primary": c.get("primary", False)
+                "primary": is_primary
+            }
+            
+        # Fallback if the user missed 'calendar.readonly' scope during OAuth login
+        # which causes calendarList to return 403 Forbidden.
+        if not has_primary:
+            cals_map["primary"] = {
+                "name": "My Calendar",
+                "colorId": None,
+                "accessRole": "owner",
+                "primary": True
             }
             
         meta = {"colors": colors, "calendars": cals_map}
