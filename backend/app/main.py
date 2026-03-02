@@ -91,7 +91,13 @@ def auth_callback(request: Request, db: Session = Depends(database.get_db)):
     user.token_uri = creds.token_uri
     user.client_id = creds.client_id
     user.client_secret = creds.client_secret
-    user.scopes = ",".join(creds.scopes)
+    if creds.scopes:
+        if isinstance(creds.scopes, str):
+            user.scopes = creds.scopes
+        else:
+            user.scopes = ",".join(creds.scopes)
+    else:
+        user.scopes = ""
     
     db.commit()
     db.refresh(user)
