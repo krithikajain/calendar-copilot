@@ -28,7 +28,7 @@ def read_root():
 
 # Parse FRONTEND_URL to support comma-separated lists and remove trailing slashes
 # We explicitly include your provided Vercel domain as a default fallback
-raw_frontend_url = os.getenv("FRONTEND_URL", "https://calendar-copilot-20.vercel.app,http://localhost:5173")
+raw_frontend_url = os.getenv("FRONTEND_URL", "https://calendar-copilot-20.vercel.app, http://localhost:5173")
 origins = []
 
 for url in raw_frontend_url.split(","):
@@ -51,7 +51,17 @@ app.add_middleware(
 SESSION_STORE = {}
 
 def get_current_user_id(request: Request) -> int:
-    session_id = request.cookies.get("session_id")
+    session_id = None
+    
+    # Check Authorization header first (e.g. Bearer <token>)
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        session_id = auth_header.split(" ")[1]
+        
+    # Fallback to cookie
+    if not session_id:
+        session_id = request.cookies.get("session_id")
+        
     if not session_id or session_id not in SESSION_STORE:
         return None
     return SESSION_STORE[session_id]
@@ -91,7 +101,10 @@ def auth_callback(request: Request, db: Session = Depends(database.get_db)):
     session_id = str(uuid.uuid4())
     SESSION_STORE[session_id] = user.id
 
-    response = RedirectResponse(url=os.getenv("FRONTEND_URL", "http://localhost:5173").split(",")[0].strip())
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173").split(",")[0].strip().rstrip("/")
+    redirect_url = f"{frontend_url}/?session_id={session_id}"
+    
+    response = RedirectResponse(url=redirect_url)
     response.set_cookie(
         key="session_id", 
         value=session_id, 
