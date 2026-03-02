@@ -7,7 +7,7 @@ class LLMProvider:
     def __init__(self):
         self.gemini_key = os.getenv("GEMINI_API_KEY")
         self.has_key = bool(self.gemini_key)
-        self.model_name = "gemini-2.5-flash"  # newer model name for the new SDK, or "gemini-1.5-flash" still works
+        self.model_name = "gemini-2.0-flash"
         if self.has_key:
             self.client = genai.Client(api_key=self.gemini_key)
 

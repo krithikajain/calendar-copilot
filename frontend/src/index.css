@@ -34,7 +34,8 @@
 
   color-scheme: light;
   color: #1f2937;
-  background-color: #fafafa; /* Subtle off-white for Notion-like aesthetic */
+  background-color: #fafafa;
+  /* Subtle off-white for Notion-like aesthetic */
 }
 
 body {

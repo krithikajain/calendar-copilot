@@ -54,7 +54,8 @@ def auth_callback(request: Request, db: Session = Depends(database.get_db)):
         db.add(user)
     
     user.access_token = creds.token
-    user.refresh_token = creds.refresh_token
+    if creds.refresh_token:
+        user.refresh_token = creds.refresh_token
     user.token_uri = creds.token_uri
     user.client_id = creds.client_id
     user.client_secret = creds.client_secret
@@ -100,6 +101,43 @@ def get_events(weekStart: str, request: Request, db: Session = Depends(database.
     events = calendar_tools.get_events(creds, time_min, time_max)
     
     return events
+
+@app.post("/api/events/create")
+def create_event(req: models.CreateEventRequest, request: Request, db: Session = Depends(database.get_db)):
+    user_id = get_current_user_id(request)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+        
+    user = db.query(database.User).filter(database.User.id == user_id).first()
+    if not user or not user.refresh_token:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+        
+    if not calendar_tools.has_write_scope(user.scopes):
+        # We use a 403 to indicate missing scopes specifically
+        return {"error": "missing_write_scope", "message": "Reconnect to enable write access."}, 403
+        
+    creds = calendar_tools.get_credentials_for_user(user)
+    
+    # Check if we need to refresh (creds.refresh handles this if we call an API, but we can also just call insert_event
+    # and let the googleapiclient handle the refresh using refresh_token automatically, but we might want to save it)
+    # The googleapiclient will automatically refresh the access token if needed, but it won't save it back to our DB.
+    # For MVP, it's fine if the DB holds an old access token as long as the refresh token works.
+    
+    event_data = {
+        "title": req.title,
+        "start": req.start,
+        "end": req.end,
+        "attendees": req.attendees,
+        "location": req.location,
+        "notes": req.notes,
+        "timeZone": req.timeZone
+    }
+    
+    try:
+        created_event = calendar_tools.insert_event(creds, event_data, calendar_id=req.calendarId)
+        return created_event
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/chat", response_model=models.ChatResponse)
 def chat_with_agent(chat_req: models.ChatRequest, request: Request, db: Session = Depends(database.get_db)):

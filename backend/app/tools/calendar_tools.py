@@ -26,7 +26,8 @@ SCOPES = [
     'openid', 
     'https://www.googleapis.com/auth/userinfo.email', 
     'https://www.googleapis.com/auth/userinfo.profile',
-    'https://www.googleapis.com/auth/calendar.readonly'
+    'https://www.googleapis.com/auth/calendar.readonly',
+    'https://www.googleapis.com/auth/calendar.events'
 ]
 
 def get_flow():
@@ -66,6 +67,52 @@ def get_authorization_url():
     auth_url, state = flow.authorization_url(access_type='offline', include_granted_scopes='true', prompt='consent')
     return auth_url, state
 
+def has_write_scope(scopes_str: str) -> bool:
+    if not scopes_str: return False
+    return 'https://www.googleapis.com/auth/calendar.events' in scopes_str
+
+def insert_event(creds, event_data: dict, calendar_id: str = "primary"):
+    service = build('calendar', 'v3', credentials=creds)
+    
+    body = {
+        "summary": event_data.get("title", "New Event"),
+        "start": {
+            "dateTime": event_data["start"],
+            "timeZone": event_data.get("timeZone", "UTC")
+        },
+        "end": {
+            "dateTime": event_data["end"],
+            "timeZone": event_data.get("timeZone", "UTC")
+        }
+    }
+    
+    if "location" in event_data and event_data["location"]:
+        body["location"] = event_data["location"]
+        
+    if "notes" in event_data and event_data["notes"]:
+        body["description"] = event_data["notes"]
+        
+    if "attendees" in event_data and event_data["attendees"]:
+        # expecting a list of email strings or list of dicts with email
+        attendees_list = []
+        for att in event_data["attendees"]:
+            if isinstance(att, str):
+                attendees_list.append({"email": att.strip()})
+            elif isinstance(att, dict) and "email" in att:
+                attendees_list.append(att)
+        if attendees_list:
+            body["attendees"] = attendees_list
+            body["sendUpdates"] = "all"
+            
+    res = service.events().insert(calendarId=calendar_id, body=body).execute()
+    return {
+        "id": res.get("id"),
+        "htmlLink": res.get("htmlLink"),
+        "start": res["start"].get("dateTime", res["start"].get("date")),
+        "end": res["end"].get("dateTime", res["end"].get("date")),
+        "summary": res.get("summary")
+    }
+
 def fetch_token_and_user_info(code: str):
     if code == "mock_code_for_demo":
         from google.oauth2.credentials import Credentials
@@ -96,7 +143,12 @@ def get_credentials_for_user(user):
 
 def get_events(creds, time_min, time_max, google_user_id: str = "default"):
     if creds.token == "mock":
-        return get_mock_events(time_min[:10])
+        events = get_mock_events(time_min[:10])
+        filtered = []
+        for e in events:
+            if time_min <= e["start"] and e["start"] < time_max:
+                filtered.append(e)
+        return filtered
         
     service = build('calendar', 'v3', credentials=creds)
     
@@ -134,6 +186,7 @@ def get_events(creds, time_min, time_max, google_user_id: str = "default"):
     calendars_map = meta["calendars"]
     
     normalized_events = []
+    seen_events = set()
     
     for cal_id, cal_info in calendars_map.items():
         try:
@@ -192,6 +245,11 @@ def get_events(creds, time_min, time_max, google_user_id: str = "default"):
                 if not words: initials = "C"
                 elif len(words) == 1: initials = words[0][:2].upper()
                 else: initials = (words[0][0] + words[1][0]).upper()
+                
+                dedup_key = (title, start, end)
+                if dedup_key in seen_events:
+                    continue
+                seen_events.add(dedup_key)
                 
                 normalized_events.append({
                     "id": e.get('id'),
@@ -293,6 +351,13 @@ def get_mock_events(start_date_str, days_offset=0):
     add_event("fri2", "Focus Time", 4, 10.0, 13.0)
     add_event("fri3", "Flight to SF", 4, 15.0, 19.0)
     
+    # Filter bounds
+    try:
+        if "T" in start_date_str:
+            tmin_dt = datetime.datetime.fromisoformat(start_date_str.replace('Z', '+00:00'))
+    except:
+        pass
+        
     return events
 def classify_event(title: str, attendees: int, location: str, is_shared: bool = False, has_meet_link: bool = False):
     # We will let shared events pass through the normal classification logic

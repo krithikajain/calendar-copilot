@@ -18,13 +18,19 @@ class PlannerAgent:
         Current Time: {date_context} ({day_of_week}, timezone: {tz_str})
         
         ALLOWED INTENTS:
-        1. email_draft_with_slots (implied scheduling: meet, call, lunch, coffee, sync, availability, time)
-        2. email_draft_general (email, draft, remind, follow up, reach out - but NOT scheduling)
-        3. day_brief (asking about today/tomorrow)
-        4. week_brief (asking about this week/next week)
-        5. meeting_time_and_reduce (asking about time in meetings or how to reduce meetings)
-        6. unknown (none of the above)
+        1. create_event_request (implies action to create/add/schedule/block/book an event or meeting on the calendar)
+        2. email_draft_with_slots (implied scheduling: meet, call, lunch, coffee, sync, availability, time)
+        3. email_draft_general (email, draft, remind, follow up, reach out - but NOT scheduling)
+        4. day_brief (asking about today/tomorrow)
+        5. week_brief (asking about this week/next week)
+        6. meeting_time_and_reduce (asking about time in meetings or how to reduce meetings)
+        7. unknown (none of the above)
         
+        If intent relates to creating an event:
+        - Route here for "block", "schedule", "put on calendar", "add event", "create event", "book".
+        - intent: "create_event_request", tool_calls: ["get_events"] (for conflict checking later). 
+        - DO NOT mark as email_draft if it explicitly says to add/create/block/schedule/book on calendar.
+
         If intent relates to email/draft:
         - Route email drafting FIRST. Never inject analytics unless user explicitly requested.
         - If scheduling is implied -> intent: "email_draft_with_slots", tool_calls: ["get_events", "compute_free_slots"]
@@ -81,15 +87,18 @@ class PlannerAgent:
         intent = "unknown"
         calls = []
         
-        if any(w in msg_l for w in ["email", "draft", "remind", "follow up", "reach out"]):
+        if any(w in msg_l for w in ["create meeting", "schedule", "block", "add event", "put on calendar", "add lunch", "book", "set up a meeting"]):
+            intent = "create_event_request"
+            calls = [ToolCall(name="get_events")]
+        elif any(w in msg_l for w in ["email", "draft", "remind", "follow up", "reach out"]):
             if any(w in msg_l for w in ["meet", "call", "lunch", "coffee", "sync", "availability", "time", "block", "schedule"]):
                 intent = "email_draft_with_slots"
                 calls = [ToolCall(name="get_events"), ToolCall(name="compute_free_slots")]
             else:
                 intent = "email_draft_general"
-        elif "reduce" in msg_l or "much time" in msg_l:
+        elif "reduce" in msg_l or "much time" in msg_l or "meetings" in msg_l:
             intent = "meeting_time_and_reduce"
-            calls = [ToolCall(name="get_events"), ToolCall(name="compute_time_stats"), ToolCall(name="recommend_reduce_meetings")]
+            calls = [ToolCall(name="get_events"), ToolCall(name="compute_time_stats"), ToolCall(name="compute_meeting_patterns"), ToolCall(name="recommend_reduce_meetings")]
         elif "week" in msg_l:
              intent = "week_brief"
              calls = [ToolCall(name="get_events"), ToolCall(name="compute_time_stats")]
@@ -99,7 +108,7 @@ class PlannerAgent:
              
         now = datetime.datetime.now(zoneinfo.ZoneInfo(tz_str))
         start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        end = start + datetime.timedelta(days=7)
+        end = start + datetime.timedelta(days=1 if intent == "day_brief" else 7)
         return Plan(
             intent=intent,
             time_range=TimeRange(start_iso=start.isoformat(), end_iso=end.isoformat(), description="fallback context"),

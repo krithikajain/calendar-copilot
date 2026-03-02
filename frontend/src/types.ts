@@ -53,4 +53,11 @@ export interface ChatMessage {
     hint?: string;
     schedule_request?: any;
     slot_options_by_person?: any;
+    recommendations?: string[];
+    metrics?: any;
+    day_brief?: string;
+    week_brief?: string;
+    draft_event?: any;
+    ui_actions?: any;
+    validation?: any;
 }

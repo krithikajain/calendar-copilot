@@ -25,6 +25,11 @@ export const sendChatMessage = async (message: string): Promise<any> => {
     return res.data;
 };
 
+export const createEvent = async (eventData: any): Promise<any> => {
+    const res = await api.post('/api/events/create', eventData);
+    return res.data;
+};
+
 export const getLoginUrl = () => {
     return `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/auth/login`;
 };

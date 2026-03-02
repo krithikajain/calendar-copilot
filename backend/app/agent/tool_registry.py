@@ -28,7 +28,18 @@ class ToolRunner:
                      
                 events = cal_tools.get_events(self.google_creds, tmin, tmax)
                 events_cache = events[:200]
-                results["events"] = f"Fetched {len(events_cache)} events."
+                
+                if plan.intent in ["day_brief", "week_brief", "unknown"]:
+                    results["events"] = [
+                        {
+                            "title": e.get("title", "Untitled"),
+                            "start": e.get("start"),
+                            "end": e.get("end"),
+                            "category": e.get("category", "Uncategorized")
+                        } for e in events_cache[:40]
+                    ]
+                else:
+                    results["events"] = f"Fetched {len(events_cache)} events."
                 
             elif call.name == "compute_free_slots":
                 c = plan.constraints.model_dump() if plan.constraints else {}

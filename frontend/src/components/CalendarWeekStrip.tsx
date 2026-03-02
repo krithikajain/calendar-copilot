@@ -2,12 +2,15 @@ import { format, addDays, isSameDay } from "date-fns";
 import { cn } from "../lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
+import { Plus } from "lucide-react";
+
 interface Props {
     weekStart: Date;
     today: Date;
+    onCreateEvent?: () => void;
 }
 
-export function CalendarWeekStrip({ weekStart, today }: Props) {
+export function CalendarWeekStrip({ weekStart, today, onCreateEvent }: Props) {
     const days = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
 
     return (
@@ -31,11 +34,21 @@ export function CalendarWeekStrip({ weekStart, today }: Props) {
                     </div>
                 </div>
 
-                {/* View Switcher */}
-                <div className="flex items-center border border-gray-300 rounded-md overflow-hidden text-sm font-medium">
-                    <button onClick={() => alert("Day view coming soon in v2!")} className="px-4 py-1.5 text-gray-600 bg-white hover:bg-gray-50 border-r border-gray-300 transition">Day</button>
-                    <button className="px-4 py-1.5 bg-gray-100 text-black border-r border-gray-300 transition">Week</button>
-                    <button onClick={() => alert("Month view coming soon in v2!")} className="px-4 py-1.5 text-gray-600 bg-white hover:bg-gray-50 transition">Month</button>
+                {/* View Switcher & Actions */}
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={onCreateEvent}
+                        className="flex items-center gap-1.5 bg-black text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-gray-800 transition-colors shadow-sm"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Create
+                    </button>
+
+                    <div className="flex items-center border border-gray-300 rounded-md overflow-hidden text-sm font-medium">
+                        <button onClick={() => alert("Day view coming soon in v2!")} className="px-4 py-1.5 text-gray-600 bg-white hover:bg-gray-50 border-r border-gray-300 transition">Day</button>
+                        <button className="px-4 py-1.5 bg-gray-100 text-black border-r border-gray-300 transition">Week</button>
+                        <button onClick={() => alert("Month view coming soon in v2!")} className="px-4 py-1.5 text-gray-600 bg-white hover:bg-gray-50 transition">Month</button>
+                    </div>
                 </div>
             </div>
 
